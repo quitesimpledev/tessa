@@ -1,0 +1,1553 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tessa</title>
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Tessa — design tokens (dark theme). Swap this :root block for the house
+   styleguide values when they change.
+   ============================================================ */
+:root {
+  --bg:        oklch(0.185 0.014 260);
+  --bg-2:      oklch(0.215 0.015 260);
+  --bg-3:      oklch(0.255 0.016 260);
+  --bg-4:      oklch(0.31  0.018 260);
+  --border:    oklch(0.29  0.016 260);
+  --border-2:  oklch(0.37  0.018 260);
+  --fg-1:      #F7F5F2;
+  --fg:        oklch(0.88  0.008 260);
+  --fg-2:      oklch(0.73  0.012 260);
+  --fg-3:      oklch(0.57  0.014 260);
+  --fg-4:      oklch(0.45  0.014 260);
+  --accent:        #D94F4F;
+  --accent-hover:  #E25E5E;
+  --accent-soft:   color-mix(in oklab, var(--accent) 16%, transparent);
+  --accent-text:   oklch(0.79 0.13 25);
+  --success:  oklch(0.74 0.15 150);
+  --warn:     oklch(0.80 0.14 80);
+  --danger:   oklch(0.65 0.20 22);
+  --info:     oklch(0.74 0.12 240);
+  --font-ui:    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:  'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-brand: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --shadow-pop: 0 12px 28px rgba(0,0,0,.32), 0 2px 4px rgba(0,0,0,.18);
+  --row: 32px;
+  --pad: 12px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 14px/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent-text); }
+[hidden] { display: none !important; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-3); }
+.muted { color: var(--fg-3); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ---------- Topbar ---------- */
+.topbar {
+  height: 48px; display: flex; align-items: center; gap: 14px; padding: 0 18px;
+  background: var(--bg-2); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.wordmark {
+  font-family: var(--font-brand); font-size: 21px; color: var(--fg-1); text-decoration: none;
+  letter-spacing: -.005em; line-height: 1; display: inline-flex; align-items: baseline; gap: 8px;
+}
+.wordmark .dot { color: var(--accent); }
+.wordmark .demo {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--fg-3); border: 1px solid var(--border-2); border-radius: 4px; padding: 2px 5px; transform: translateY(-3px);
+}
+.nav { display: flex; gap: 2px; margin-left: 6px; }
+.nav button {
+  height: 28px; padding: 0 10px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--fg-2);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.nav button:hover { background: var(--bg-3); color: var(--fg-1); }
+.nav button.on { background: var(--bg-3); color: var(--fg-1); }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.me-btn {
+  height: 28px; padding: 0 10px 0 6px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg-3); display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--fg-1);
+}
+.me-btn:hover { border-color: var(--border-2); }
+.avatar {
+  width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 10px; font-weight: 700; color: #fff; background: oklch(0.55 0.14 200);
+}
+.avatar.rev { background: var(--accent); }
+.me-btn .role { font-weight: 500; color: var(--fg-3); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  height: 32px; padding: 0 12px; border-radius: 8px; background: var(--bg-3);
+  border: 1px solid var(--border); color: var(--fg-1); font-weight: 500; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: background .12s, border-color .12s;
+}
+.btn:hover { background: var(--bg-4); border-color: var(--border-2); }
+.btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.danger { background: transparent; border-color: color-mix(in oklab, var(--danger) 40%, transparent); color: var(--danger); }
+.btn.danger:hover { background: color-mix(in oklab, var(--danger) 14%, transparent); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--fg-2); }
+.btn.ghost:hover { background: var(--bg-3); color: var(--fg-1); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.sm { height: 28px; font-size: 12px; padding: 0 10px; }
+.pill-btn {
+  height: 28px; padding: 0 12px; border-radius: 999px; background: var(--bg-3); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--fg-1); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.pill-btn:hover { border-color: var(--border-2); background: var(--bg-4); }
+.icon-btn {
+  width: 28px; height: 28px; border-radius: 6px; display: inline-grid; place-items: center;
+  color: var(--fg-2); border: 1px solid transparent; flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--bg-3); color: var(--fg-1); }
+.icon-btn.active { background: var(--accent-soft); color: var(--accent-text); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
+svg.i { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+svg.i.lg { width: 18px; height: 18px; }
+
+/* ---------- Segmented ---------- */
+.seg { display: inline-flex; padding: 2px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; gap: 2px; }
+.seg button { height: 26px; padding: 0 10px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--fg-2); display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.seg button:hover { color: var(--fg-1); }
+.seg button.on { background: var(--bg-3); color: var(--fg-1); box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.seg.grow { display: flex; } .seg.grow button { flex: 1; }
+.seg button .sub { font-size: 11px; color: var(--fg-3); font-weight: 400; }
+.seg button.on .sub { color: var(--fg-2); }
+
+/* ---------- Chips & badges ---------- */
+.chip {
+  height: 24px; padding: 0 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--bg-3); color: var(--fg-2);
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.chip:hover { border-color: var(--border-2); color: var(--fg-1); }
+.chip.on { background: var(--accent-soft); color: var(--accent-text); border-color: color-mix(in oklab, var(--accent) 40%, transparent); }
+.chip .n { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.chip.on .n { color: inherit; opacity: .8; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 8px 0 7px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; white-space: nowrap; line-height: 1;
+}
+.badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.st-new         { background: var(--bg-4); color: var(--fg-1); }
+.st-needs_info  { background: color-mix(in oklab, var(--warn) 16%, transparent); color: var(--warn); }
+.st-rejected    { background: var(--bg-3); color: var(--fg-3); }
+.st-in_progress { background: color-mix(in oklab, var(--info) 16%, transparent); color: var(--info); }
+.st-implemented { background: color-mix(in oklab, var(--success) 16%, transparent); color: var(--success); }
+.st-verified    { background: var(--success); color: oklch(0.22 0.04 150); }
+.st-verified::before { display: none; }
+.st-verified .chk { font-size: 11px; line-height: 1; }
+
+.pri {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600; height: 20px; padding: 0 6px; border-radius: 4px;
+  display: inline-flex; align-items: center; letter-spacing: .02em; white-space: nowrap;
+}
+.pri-p1 { color: var(--danger); background: color-mix(in oklab, var(--danger) 14%, transparent); }
+.pri-p2 { color: var(--warn); background: color-mix(in oklab, var(--warn) 12%, transparent); }
+.pri-p3 { color: var(--fg-3); background: var(--bg-3); }
+.type { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; font-weight: 600; color: var(--fg-3); white-space: nowrap; }
+.prefix {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--fg-2); background: var(--bg-3);
+  border: 1px solid var(--border); border-radius: 4px; padding: 2px 5px; letter-spacing: .05em; line-height: 1;
+}
+.idm { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+
+/* ---------- Status select (reviewer inline) ---------- */
+.st-sel {
+  appearance: none; -webkit-appearance: none; border: 0; cursor: pointer; padding-right: 20px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat; background-position: right 6px center;
+}
+.st-sel::before { display: none; }
+.st-sel option { background: var(--bg-2); color: var(--fg-1); font-weight: 500; }
+
+/* ---------- Page ---------- */
+.page { max-width: 1100px; margin: 0 auto; padding: 24px 20px 110px; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.page-head h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -.02em; color: var(--fg-1); line-height: 1.2; }
+.page-head .sub { font-size: 13px; color: var(--fg-3); margin-top: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.page-head .actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.proj-btn {
+  display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; padding: 2px 8px 2px 4px; margin-left: -4px;
+  color: var(--fg-1); position: relative;
+}
+.proj-btn:hover { background: var(--bg-3); }
+.proj-btn .chev { color: var(--fg-3); }
+.proj-wrap { position: relative; display: inline-block; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+.filters .gap { width: 8px; }
+.filters .lbl { font-size: 11px; color: var(--fg-4); margin-right: 2px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+
+/* ---------- Card list ---------- */
+.list { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); overflow: hidden; }
+.row {
+  display: grid; grid-template-columns: 76px minmax(0,1fr) auto; gap: 14px; align-items: center;
+  padding: 10px 16px; border-bottom: 1px solid var(--border); cursor: pointer; min-height: 52px; text-align: left; width: 100%;
+}
+.row:last-child { border-bottom: 0; }
+.row:hover { background: var(--bg-3); }
+.row .main { min-width: 0; }
+.row .title { font-weight: 500; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .sub { font-size: 12px; color: var(--fg-3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
+.row .sub .type { font-size: 10px; }
+.row .meta { display: flex; align-items: center; gap: 12px; }
+.row .shots { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); min-width: 30px; }
+.row .who { font-size: 12px; color: var(--fg-3); min-width: 108px; text-align: right; white-space: nowrap; }
+.row .stcol { min-width: 104px; display: flex; justify-content: flex-start; }
+.empty { padding: 48px 24px; text-align: center; color: var(--fg-3); font-size: 13px; }
+.empty b { display: block; color: var(--fg-1); font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+
+/* ---------- Review table ---------- */
+.table { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); overflow: hidden; }
+.trow {
+  display: grid; grid-template-columns: 28px 80px minmax(0,1fr) 176px 88px 44px 144px 116px; gap: 14px; align-items: center;
+  padding: 12px 18px; min-height: 66px; border-bottom: 1px solid var(--border); cursor: pointer; width: 100%; text-align: left;
+}
+.trow:last-child { border-bottom: 0; }
+.trow:hover { background: var(--bg-3); }
+.trow.sel { background: color-mix(in oklab, var(--accent) 7%, var(--bg-2)); }
+.trow.sel:hover { background: color-mix(in oklab, var(--accent) 10%, var(--bg-2)); }
+.thead { min-height: 38px; padding: 0 18px; background: var(--bg); cursor: default; }
+.thead:hover { background: var(--bg); }
+.thead span { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-4); }
+.trow .t { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.trow .t .title { font-weight: 500; font-size: 14.5px; color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trow .t .where { font-size: 12.5px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trow .proj { font-size: 12px; color: var(--fg-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center; }
+.trow .filed { font-size: 12.5px; color: var(--fg-3); white-space: nowrap; }
+.cb { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border-2); background: var(--bg); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+.cb.on { background: var(--accent); border-color: var(--accent); }
+.cb svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+
+.selbar {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+  background: var(--bg-4); border: 1px solid var(--border-2); border-radius: 12px;
+  padding: 8px 8px 8px 16px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.45); z-index: 35; white-space: nowrap; max-width: calc(100% - 24px);
+}
+.selbar .cnt { font-size: 13px; font-weight: 600; color: var(--fg-1); font-variant-numeric: tabular-nums; }
+.selbar .sep { width: 1px; height: 20px; background: var(--border-2); }
+.selbar select { height: 28px; border-radius: 6px; background: var(--bg-3); border: 1px solid var(--border); padding: 0 8px; font-size: 12px; color: var(--fg-1); }
+
+/* ---------- Batches ---------- */
+.brow { display: grid; grid-template-columns: 84px minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; min-height: 56px; text-align: left; width: 100%; }
+.brow:last-child { border-bottom: 0; }
+.brow:hover { background: var(--bg-3); }
+.brow .main { min-width: 0; }
+.brow .title { font-weight: 500; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brow .sub { font-size: 12px; color: var(--fg-3); margin-top: 2px; }
+.help-btn { margin-left: 2px; }
+.skipped { font-size: 12px; color: var(--fg-2); line-height: 1.5; }
+.skipped .idm { color: var(--fg-1); }
+
+/* ---------- Projects ---------- */
+.prow { display: grid; grid-template-columns: 56px minmax(0,1fr) 180px 100px 64px; gap: 14px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; }
+.prow:last-child { border-bottom: 0; }
+.prow:hover { background: var(--bg-3); }
+.prow .name { font-weight: 500; color: var(--fg-1); }
+.prow .path { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow .cnts { font-size: 12px; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.prow.off .name { color: var(--fg-3); }
+
+/* ---------- Forms ---------- */
+.fld { display: flex; flex-direction: column; gap: 6px; }
+.fld > label:not(.drop) { font-size: 12px; font-weight: 600; color: var(--fg-2); display: flex; gap: 6px; align-items: baseline; }
+.fld > label .opt { font-weight: 400; color: var(--fg-4); }
+#type-fields { display: flex; flex-direction: column; gap: 16px; }
+#type-fields:empty { display: none; }
+.fld input[type=text], .fld input[type=email], .fld textarea, .fld select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; height: 34px;
+  color: var(--fg-1); width: 100%; transition: border-color .12s, box-shadow .12s;
+}
+.fld select { appearance: none; -webkit-appearance: none; padding-right: 28px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px center; }
+.fld textarea { height: auto; min-height: 66px; padding: 8px 10px; resize: vertical; line-height: 1.45; }
+.fld input:focus, .fld textarea:focus, .fld select:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fld input::placeholder, .fld textarea::placeholder { color: var(--fg-4); }
+.fld .help { font-size: 12px; color: var(--fg-3); }
+.fld.err input, .fld.err textarea { border-color: var(--danger); }
+.fld .errmsg { font-size: 12px; color: var(--danger); display: none; }
+.fld.err .errmsg { display: block; }
+.fld.err .help { display: none; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-sec { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; border-top: 1px solid var(--border); }
+.form-sec .eyebrow { margin-bottom: -2px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.toggle-row-title { font-size: 13px; font-weight: 500; color: var(--fg-1); }
+.toggle-row-sub { font-size: 12px; color: var(--fg-3); margin-top: 2px; }
+.switch { position: relative; display: inline-block; width: 34px; height: 20px; flex-shrink: 0; }
+.switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch-track { position: absolute; inset: 0; border-radius: 999px; background: var(--bg-4); border: 1px solid var(--border-2); transition: background .15s; cursor: pointer; }
+.switch-thumb { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--fg-2); transition: transform .15s, background .15s; }
+.switch input:checked + .switch-track { background: var(--accent); border-color: var(--accent); }
+.switch input:checked + .switch-track .switch-thumb { transform: translateX(14px); background: #fff; }
+.switch input:focus-visible + .switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Screenshots dropzone */
+.drop {
+  border: 1px dashed var(--border-2); border-radius: 8px; padding: 16px 12px; text-align: center; color: var(--fg-3); font-size: 12px;
+  background: var(--bg); cursor: pointer; transition: border-color .12s, background .12s, color .12s; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); color: var(--fg-1); }
+.drop b { color: var(--fg-1); font-weight: 600; }
+.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.thumb { position: relative; aspect-ratio: 4/3; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); background: var(--bg); cursor: zoom-in; padding: 0; display: block; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .rm { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 4px; background: rgba(0,0,0,.65); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.thumb .rm:hover { background: var(--accent); }
+.thumb .k { position: absolute; left: 6px; bottom: 4px; font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,.75); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+
+/* ---------- Drawer ---------- */
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; opacity: 0; transition: opacity .16s; }
+.scrim.show { opacity: 1; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(480px, 100%); background: var(--bg-2); border-left: 1px solid var(--border);
+  z-index: 50; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .2s cubic-bezier(.2,.7,.2,1);
+  box-shadow: -12px 0 32px rgba(0,0,0,.35);
+}
+.drawer.show { transform: none; }
+.drawer-head { height: 48px; padding: 0 10px 0 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.drawer-head h4 { margin: 0; font-size: 13px; font-weight: 600; flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--fg-1); }
+.drawer-body { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 16px; -webkit-overflow-scrolling: touch; }
+.drawer-foot { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; background: var(--bg-2); align-items: center; }
+.drawer-foot .left { margin-right: auto; }
+
+/* Card detail */
+.detail-title { margin: 0; font-size: 18px; font-weight: 600; color: var(--fg-1); line-height: 1.3; letter-spacing: -.01em; text-wrap: balance; }
+.detail-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.kv { display: grid; grid-template-columns: 96px minmax(0,1fr); gap: 7px 12px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--fg-3); }
+.kv dd { margin: 0; color: var(--fg-1); overflow-wrap: anywhere; }
+.blk { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.5; color: var(--fg); white-space: pre-wrap; overflow-wrap: anywhere; }
+.blk .lbl { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-3); margin-bottom: 4px; }
+.blk.cur { color: var(--fg-2); }
+.blk.prop { border-left: 3px solid var(--success); }
+.note { background: var(--bg-3); border-left: 3px solid var(--accent); border-radius: 4px 8px 8px 4px; padding: 10px 12px; font-size: 13px; color: var(--fg-2); line-height: 1.5; white-space: pre-wrap; }
+.note .lbl { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-3); margin-bottom: 4px; }
+.note.reply { border-left-color: var(--info); }
+.callout { background: color-mix(in oklab, var(--success) 10%, transparent); border: 1px solid color-mix(in oklab, var(--success) 30%, transparent); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: var(--fg-1); }
+.callout.warn { background: color-mix(in oklab, var(--warn) 9%, transparent); border-color: color-mix(in oklab, var(--warn) 30%, transparent); }
+.callout .acts { display: flex; gap: 8px; }
+.triage { border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); }
+.triage .hd { display: flex; align-items: center; justify-content: space-between; }
+
+/* ---------- Modal ---------- */
+.modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; }
+.modal-card {
+  width: min(760px, 100%); max-height: calc(100vh - 32px); background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: var(--shadow-pop); display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-card.sm { width: min(420px, 100%); }
+.modal-head { height: 48px; padding: 0 10px 0 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.modal-head h4 { margin: 0; font-size: 13px; font-weight: 600; flex: 1; color: var(--fg-1); }
+.modal-body { padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.modal-foot { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+.modal-foot .left { margin-right: auto; font-size: 12px; color: var(--fg-3); }
+pre.md { margin: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.55; color: var(--fg-2); overflow: auto; max-height: 46vh; white-space: pre-wrap; overflow-wrap: anywhere; }
+pre.md .fh { color: var(--accent-text); }
+.exp-sum { display: flex; flex-wrap: wrap; gap: 8px; }
+.exp-sum .grp { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 6px; border-radius: 6px; background: var(--bg-3); border: 1px solid var(--border); font-size: 12px; color: var(--fg-1); }
+.code-in { font-family: var(--font-mono); font-size: 22px; letter-spacing: .4em; text-align: center; height: 48px !important; }
+
+/* Lightbox */
+.lightbox { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 24px; }
+.lightbox img { max-width: 100%; max-height: calc(100vh - 48px); border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+.lightbox .lb-close { position: absolute; top: 14px; right: 14px; color: #fff; width: 36px; height: 36px; }
+.lightbox .lb-cap { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 11px; color: rgba(255,255,255,.7); }
+.lightbox .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; color: #fff; border-radius: 8px; display: grid; place-items: center; background: rgba(0,0,0,.3); }
+.lightbox .lb-nav:hover { background: rgba(0,0,0,.6); }
+.lightbox .lb-prev { left: 14px; } .lightbox .lb-next { right: 14px; }
+
+/* Popover */
+.pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); padding: 6px; min-width: 260px; }
+.pop.right { left: auto; right: 0; }
+.pop .item { display: flex; align-items: center; gap: 10px; padding: 0 10px; height: 34px; border-radius: 6px; font-size: 13px; color: var(--fg-1); width: 100%; text-align: left; white-space: nowrap; }
+.pop .item:hover { background: var(--bg-3); }
+.pop .item.on { background: var(--bg-3); }
+.pop .item .n { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+.pop .item.dim { color: var(--fg-3); }
+.pop hr { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
+.pop-proj { min-width: 300px; }
+.pop-search { display: block; width: calc(100% - 8px); margin: 2px 4px 6px; height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-1); color: var(--fg-1); font: inherit; font-size: 13px; }
+.pop-search:focus { outline: none; border-color: var(--accent); }
+.pop-list { max-height: min(60vh, 440px); overflow-y: auto; }
+.filter-sel { height: 28px; padding: 0 28px 0 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-1); font: inherit; font-size: 12px; font-weight: 600; max-width: 320px; }
+.pop .hd { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-4); padding: 6px 10px 4px; }
+
+/* Toast */
+.toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 100; pointer-events: none; align-items: center; }
+.toast { background: var(--bg-4); border: 1px solid var(--border-2); color: var(--fg-1); padding: 9px 14px; border-radius: 8px; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.4); animation: toast-in .18s ease-out; display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+.toast .idm { color: var(--accent-text); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.fab { display: none; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 720px) {
+  .topbar { padding: 0 12px; gap: 10px; }
+  .nav button .txt { display: none; }
+  .nav button { padding: 0 8px; }
+  .me-btn .role, .me-btn .nm { display: none; }
+  .me-btn { padding: 0 5px; }
+  .page { padding: 16px 12px 110px; }
+  .page-head { flex-direction: column; gap: 10px; }
+  .page-head .actions .btn.primary { display: none; }
+  .fab { display: inline-flex; position: fixed; right: 16px; bottom: 16px; z-index: 30; height: 44px; padding: 0 18px 0 14px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,.45), 0 2px 6px rgba(217,79,79,.35); }
+  .filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; margin-left: -12px; margin-right: -12px; padding-left: 12px; padding-right: 12px; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .row { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 12px 14px; }
+  .row .idline { display: flex; gap: 8px; align-items: center; }
+  .row .meta { justify-content: space-between; }
+  .row .who { text-align: left; min-width: 0; }
+  .row .stcol { min-width: 0; }
+  .trow { grid-template-columns: 28px minmax(0,1fr); grid-template-areas: "cb id" "cb t" "cb mob"; row-gap: 6px; padding: 14px 12px; min-height: 0; }
+  .trow .cb { grid-area: cb; align-self: start; margin-top: 2px; }
+  .trow > .idm { grid-area: id; }
+  .trow .t { grid-area: t; }
+  .trow .mob { grid-area: mob; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .trow .proj, .trow > .filed, .trow > .type, .trow > .pri, .trow > .stwrap, .thead { display: none; }
+  .trow .mob .filed { flex-basis: 100%; }
+  .row .stcol { display: none; }
+  .fld input[type=text], .fld input[type=email], .fld textarea, .fld select { font-size: 16px; }
+  .pill-btn .long { display: none; }
+  .prow { grid-template-columns: 48px minmax(0,1fr) 64px; }
+  .brow { grid-template-columns: 64px minmax(0,1fr) auto; padding: 12px; gap: 10px; }
+  .prow .cnts, .prow .repo { display: none; }
+  .two { grid-template-columns: 1fr; }
+  .kv { grid-template-columns: 84px minmax(0,1fr); }
+  .selbar { bottom: 12px; padding: 8px 8px 8px 12px; gap: 8px; }
+  .modal { padding: 0; align-items: end; }
+  .modal-card { border-radius: 12px 12px 0 0; max-height: 92vh; width: 100%; }
+  .modal-card.sm { width: 100%; }
+  .modal-foot .left { display: none; }
+}
+@media (min-width: 721px) { .trow .mob { display: none; } .row .idline .badge { display: none; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* =================================================================
+   Tessa v1 — phase 1 (UI on a local store). Vanilla JS, no build step.
+   The Store interface is the seam where Supabase slots in later.
+   ================================================================= */
+'use strict';
+
+/* ---------- Config ----------
+   Leave both empty to run on local demo data. Fill them in (step 2 of the
+   build plan) and the page talks to Supabase instead. The anon key is public
+   by design; row-level security in schema.sql decides what it may do. */
+const CONFIG = {
+  supabaseUrl: 'https://koeuagczpidjmhxafipt.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvZXVhZ2N6cGlkam1oeGFmaXB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5ODcxODksImV4cCI6MjEwNDU2MzE4OX0.9nooXOdYkP1MKD-cobPorFn-pKwS_E5ZgJ90M1aiilk',
+};
+
+const STATUSES = [
+  { id: 'new',         label: 'New' },
+  { id: 'needs_info',  label: 'Needs info' },
+  { id: 'in_progress', label: 'In progress' },
+  { id: 'implemented', label: 'Implemented' },
+  { id: 'verified',    label: 'Verified' },
+  { id: 'rejected',    label: 'Rejected' },
+];
+const TYPES = [
+  { id: 'content', label: 'Content' },
+  { id: 'bug',     label: 'Bug' },
+  { id: 'feature', label: 'Feature' },
+  { id: 'other',   label: 'Other' },
+];
+const PRIORITIES = [
+  { id: 'p1', label: 'P1', sub: 'Blocking' },
+  { id: 'p2', label: 'P2', sub: 'Should fix' },
+  { id: 'p3', label: 'P3', sub: 'Nice to have' },
+];
+const MAX_SHOTS = 5;
+const SEED_V = 4; // bump to reseed the demo data in browsers that already have v1
+const stLabel = id => (STATUSES.find(s => s.id === id) || {}).label || id;
+const tyLabel = id => (TYPES.find(s => s.id === id) || {}).label || id;
+
+/* ---------- Icons (Lucide-style, 1.8 stroke) ---------- */
+const I = {
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  chev: '<polyline points="6 9 12 15 18 9"/>',
+  chevL: '<polyline points="15 18 9 12 15 6"/>',
+  chevR: '<polyline points="9 6 15 12 9 18"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>',
+  table: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/>',
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+  pencil: '<path d="M17 3l4 4L8 20H4v-4z"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/>',
+  camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+  reply: '<polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>',
+  package: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  clipboard: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+};
+const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+
+/* ---------- Utilities ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(iso, long = false) {
+  const d = new Date(iso); const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  if (sameDay && !long) return 'Today';
+  const y = new Date(now); y.setDate(y.getDate() - 1);
+  if (y.toDateString() === d.toDateString() && !long) return 'Yesterday';
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}${long || d.getFullYear() !== now.getFullYear() ? ' ' + d.getFullYear() : ''}`;
+}
+const daysAgo = (n, h = 10) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, (n * 7) % 60, 0, 0); return d.toISOString(); };
+const pad3 = n => String(n).padStart(3, '0');
+function toast(html, ms = 2600) {
+  const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = html;
+  $('#toasts').appendChild(el); setTimeout(() => el.remove(), ms);
+}
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+
+/* ---------- Placeholder screenshots (demo only) ---------- */
+function fakeShot(label, variant = 0) {
+  const w = 1200, h = 800;
+  const bg = '#1c1d25', card = '#262833', line = '#33363f', txt = '#8a8d99', hi = '#3a3d4a';
+  let body = '';
+  if (variant % 3 === 0) {
+    // card grid
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) {
+      const x = 80 + c * 270, y = 150 + r * 300;
+      body += `<rect x="${x}" y="${y}" width="230" height="250" rx="12" fill="${card}"/><rect x="${x}" y="${y}" width="230" height="140" rx="12" fill="${hi}"/><rect x="${x + 16}" y="${y + 160}" width="140" height="14" rx="4" fill="${txt}"/><rect x="${x + 16}" y="${y + 186}" width="190" height="10" rx="4" fill="${line}"/><rect x="${x + 16}" y="${y + 204}" width="160" height="10" rx="4" fill="${line}"/>`;
+    }
+  } else if (variant % 3 === 1) {
+    // game HUD
+    body += `<rect x="0" y="80" width="${w}" height="${h - 80}" fill="#20222b"/>`;
+    for (let i = 0; i < 9; i++) body += `<rect x="${120 + i * 110}" y="${420 + (i % 2) * 30}" width="70" height="${120 - (i % 3) * 20}" rx="6" fill="${i % 2 ? '#4a4f5f' : '#3c4050'}"/>`;
+    body += `<rect x="60" y="120" width="360" height="24" rx="12" fill="${card}"/><rect x="60" y="120" width="210" height="24" rx="12" fill="#D94F4F"/>`;
+    body += `<rect x="${w - 260}" y="110" width="200" height="44" rx="8" fill="${card}"/><rect x="${w - 240}" y="126" width="80" height="12" rx="4" fill="${txt}"/>`;
+    body += `<rect x="360" y="640" width="480" height="90" rx="14" fill="${card}"/><rect x="392" y="672" width="300" height="14" rx="4" fill="${txt}"/>`;
+  } else {
+    // reader / two columns
+    body += `<rect x="80" y="130" width="500" height="560" rx="12" fill="${card}"/><rect x="620" y="130" width="500" height="560" rx="12" fill="${card}"/>`;
+    for (let i = 0; i < 14; i++) { const wv = 300 + ((i * 53) % 150); body += `<rect x="110" y="${170 + i * 34}" width="${wv}" height="11" rx="4" fill="${i % 5 === 0 ? txt : line}"/><rect x="650" y="${170 + i * 34}" width="${wv - 40}" height="11" rx="4" fill="${i % 5 === 0 ? txt : line}"/>`; }
+  }
+  const px = 200 + ((variant * 337) % 700), py = 220 + ((variant * 211) % 380);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <rect width="${w}" height="${h}" fill="${bg}"/>
+    <rect width="${w}" height="56" fill="${card}"/><rect x="24" y="18" width="120" height="18" rx="4" fill="${txt}"/><rect x="${w - 160}" y="16" width="120" height="24" rx="12" fill="${hi}"/>
+    ${body}
+    <circle cx="${px}" cy="${py}" r="46" fill="none" stroke="#D94F4F" stroke-width="6"/>
+    <circle cx="${px}" cy="${py}" r="60" fill="none" stroke="#D94F4F" stroke-width="2" opacity=".5"/>
+    <text x="${w - 24}" y="${h - 22}" font-family="JetBrains Mono, monospace" font-size="18" fill="#6a6d7a" text-anchor="end">${esc(label)} · demo screenshot</text>
+  </svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+/* ---------- Store (localStorage; Supabase adapter replaces this) ---------- */
+class LocalStore {
+  constructor() { this.P = 'tessa.'; }
+  g(k, d) { return lsGet(this.P + k, d); }
+  s(k, v) { const ok = lsSet(this.P + k, v); if (!ok) toast('Browser storage is full — screenshots were not saved'); return ok; }
+  async listProjects() { return this.g('projects', []); }
+  async getProject(id) { return (await this.listProjects()).find(p => p.id === id); }
+  async saveProject(p) {
+    const ps = await this.listProjects(); if (!p.id) p = { ...p, id: uid() }; const i = ps.findIndex(x => x.id === p.id);
+    if (i >= 0) ps[i] = { ...ps[i], ...p }; else ps.push({ seq: 0, active: true, ...p });
+    this.s('projects', ps); return p;
+  }
+  async listCards() { return this.g('cards', []); }
+  async getCard(id) { return (await this.listCards()).find(c => c.id === id); }
+  async createCard(card, shots = []) {
+    const ps = await this.listProjects(); const p = ps.find(x => x.id === card.project_id);
+    p.seq = (p.seq || 0) + 1; this.s('projects', ps);
+    const now = new Date().toISOString();
+    const c = { id: uid(), display_id: `${p.prefix}-${pad3(p.seq)}`, status: 'new', created_at: now, updated_at: now, filer_reply: '', reviewer_note: '', batch_id: null, ...card };
+    const cs = await this.listCards(); cs.push(c); this.s('cards', cs);
+    if (shots.length) { const all = this.g('shots', {}); all[c.id] = shots; this.s('shots', all); }
+    return c;
+  }
+  async updateCard(id, patch) {
+    const cs = await this.listCards(); const i = cs.findIndex(c => c.id === id); if (i < 0) return null;
+    cs[i] = { ...cs[i], ...patch, updated_at: new Date().toISOString() }; this.s('cards', cs); return cs[i];
+  }
+  async moveCard(id, projectId) {
+    const ps = await this.listProjects(); const p = ps.find(x => x.id === projectId); if (!p) return null;
+    const c = await this.getCard(id); if (!c || c.project_id === projectId) return c;
+    p.seq = (p.seq || 0) + 1; this.s('projects', ps);
+    return this.updateCard(id, { project_id: projectId, display_id: `${p.prefix}-${pad3(p.seq)}`, moved_from: c.moved_from || c.display_id });
+  }
+  async deleteCard(id) {
+    this.s('cards', (await this.listCards()).filter(c => c.id !== id));
+    const all = this.g('shots', {}); delete all[id]; this.s('shots', all);
+  }
+  async getShots(cardId) { return (this.g('shots', {}))[cardId] || []; }
+  async setShots(cardId, shots) { const all = this.g('shots', {}); if (shots.length) all[cardId] = shots; else delete all[cardId]; this.s('shots', all); }
+  async shotCounts() { const all = this.g('shots', {}); const m = {}; for (const k in all) m[k] = all[k].length; return m; }
+  async listBatches() { return this.g('batches', []); }
+  async getBatch(id) { return (await this.listBatches()).find(b => b.id === id); }
+  async nextBatchNo() { return this.g('batchSeq', 0) + 1; }
+  async createBatch(b) {
+    const bs = await this.listBatches(); const no = (this.g('batchSeq', 0)) + 1; this.s('batchSeq', no);
+    const batch = { id: uid(), no, created_at: new Date().toISOString(), report: null, reported_at: null, ...b }; bs.push(batch); this.s('batches', bs); return batch;
+  }
+  async saveReport(batchId, report) {
+    const bs = await this.listBatches(); const b = bs.find(x => x.id === batchId); if (!b) return null;
+    b.report = report; b.reported_at = new Date().toISOString(); this.s('batches', bs); return b;
+  }
+  seeded() { return this.g('seedv', 0) >= SEED_V; }
+  async seed() {
+    const P = (id, name, prefix, repo, content_path, agent_notes, seq) => ({ id, name, prefix, repo, content_path, agent_notes, seq, active: true });
+    const projects = [
+      P('aul', 'Aula Uno', 'AUL', '', '', '', 0),
+      P('boc', 'Bocadillo', 'BOC', '', '', '', 0),
+      P('dnd', 'Duende', 'DND', '', '', '', 2),
+      P('est', 'Estación', 'EST', '', '', '', 0),
+      P('far', 'Farolillo', 'FAR', '', '', '', 3),
+      P('gav', 'Gaviota', 'GAV', '', '', '', 0),
+      P('hor', 'Horchata', 'HOR', '', '', '', 0),
+      P('lin', 'Linterna', 'LIN', '', '', '', 0),
+      P('moc', 'Mochila', 'MOC', '', '', '', 0),
+      P('nub', 'Nube', 'NUB', '', '', '', 3),
+      P('oli', 'Olivar', 'OLI', '', '', '', 0),
+      P('piz', 'Pizarra', 'PIZ', '', '', '', 0),
+      P('trv', 'Travesía', 'TRV', 'example/travesia', 'cards/', 'Cards are JSON files in cards/*.json, one file per batch. The English gloss lives in the `gloss` field. Keep Castilian register (vosotros; coger is fine).', 7),
+    ];
+    const C = (o) => ({ id: uid(), filer_reply: '', reviewer_note: '', batch_id: null, description: '', updated_at: o.created_at, ...o });
+    const cards = [
+      C({ project_id: 'trv', display_id: 'TRV-001', type: 'content', priority: 'p2', status: 'verified', title: 'Gloss wrong for "barra"', where: 'Card 3, "La panadería" batch', current_text: 'loaf', proposed_text: 'baguette-style loaf (barra)', description: 'Learners read "loaf" as sliced bread. The picture is clearly a barra.', filer_name: 'Marta', created_at: daysAgo(12), batch_id: 'b1' }),
+      C({ project_id: 'trv', display_id: 'TRV-002', type: 'bug', priority: 'p1', status: 'in_progress', title: 'Timer keeps running on the pause screen', where: 'Level 2, wave 2 — any device', steps: '1. Start level 2\n2. Press pause during wave 2\n3. Wait 10 seconds\n4. Resume', expected: 'Timer is paused while the pause screen is up.', actual: 'Timer advanced 10 seconds.', filer_name: 'Marta', created_at: daysAgo(6), batch_id: 'b3', _shots: [['TRV-002', 1]] }),
+      C({ project_id: 'trv', display_id: 'TRV-003', type: 'content', priority: 'p3', status: 'new', title: 'Accent missing on "está"', where: 'Card 11, "El mercado" batch', current_text: 'Juan esta cansado.', proposed_text: 'Juan está cansado.', filer_name: 'Diego', created_at: daysAgo(1) }),
+      C({ project_id: 'trv', display_id: 'TRV-004', type: 'feature', priority: 'p3', status: 'rejected', title: 'Add a hint button after two misses', where: 'Battle screen', description: 'When a learner misses the same card twice, offer a hint (first letter or the gloss). Several testers gave up at that point.', filer_name: 'Diego', created_at: daysAgo(4), reviewer_note: 'Not for v1 — hints undermine the recall loop. Revisit after the September playtest.' }),
+      C({ project_id: 'trv', display_id: 'TRV-005', type: 'bug', priority: 'p2', status: 'needs_info', title: 'Sword sprite flickers on Safari', where: 'Any level, iPad', steps: '1. Open on iPad in Safari\n2. Start level 1\n3. Watch the player sprite', expected: 'Smooth animation.', actual: 'The sprite flickers every few seconds, mostly during attacks.', filer_name: 'Marta', created_at: daysAgo(2), reviewer_note: 'Which iPad and iOS version? Does it also happen in Chrome on the same device?', _shots: [['TRV-005', 1], ['TRV-005', 4]] }),
+      C({ project_id: 'trv', display_id: 'TRV-006', type: 'content', priority: 'p2', status: 'new', title: '"Coger" gloss should note Spain usage', where: 'Card 7, "En el autobús" batch — cards/batch-02.json', current_text: 'to take, to grab', proposed_text: 'to take, to catch (a bus) · Spain usage; avoid in Latin America', description: 'A learner from Mexico flagged it. One short note is enough.', filer_name: 'Diego', created_at: daysAgo(0, 9), edited_by: 'Lucía', edited_at: daysAgo(0, 12),
+         original: { title: '"Coger" gloss should note Spain usage', where: 'Card 7, "En el autobús" batch', description: 'A learner from Mexico flagged it. One short note is enough.', current_text: 'to take, to grab', proposed_text: 'to take, to catch (a bus) — Spain; avoid in Latin America', steps: '', expected: '', actual: '', type: 'content', priority: 'p3' } }),
+      C({ project_id: 'trv', display_id: 'TRV-007', type: 'bug', priority: 'p1', status: 'implemented', title: 'Score resets when rotating the phone', where: 'Any level, Android (Pixel 7)', steps: '1. Play until score > 0\n2. Rotate the phone to landscape', expected: 'Score is kept.', actual: 'Score goes back to 0 and the wave restarts.', filer_name: 'Marta', created_at: daysAgo(3), batch_id: 'b3', reviewer_note: 'Fixed in the batch-3 pass — state is now kept across orientation changes. Please confirm on your Pixel.', _shots: [['TRV-007', 1]] }),
+      C({ project_id: 'nub', display_id: 'NUB-001', type: 'content', priority: 'p1', status: 'new', title: 'Wrong date in the Pamplona article', where: 'Week 36, article 2', current_text: 'el 12 de septiembre', proposed_text: 'el 14 de septiembre', description: 'Both the Spanish and the English say the 12th; the event is the 14th.', filer_name: 'Ana', created_at: daysAgo(1, 16) }),
+      C({ project_id: 'nub', display_id: 'NUB-002', type: 'content', priority: 'p2', status: 'in_progress', title: 'B1 article reads like B2', where: 'Week 36, article 4', description: 'Too many subordinate clauses; three subjunctive triggers in the first paragraph alone. Needs a simpler rewrite at B1, same facts.', filer_name: 'Ana', created_at: daysAgo(2, 14), batch_id: 'b3' }),
+      C({ project_id: 'nub', display_id: 'NUB-003', type: 'bug', priority: 'p2', status: 'new', title: 'Side-by-side view breaks on narrow phones', where: 'Any article, iPhone SE', steps: '1. Open any article on an iPhone SE\n2. Switch to side-by-side', expected: 'Two readable columns or a stacked fallback.', actual: 'The Spanish column is cut off on the right.', filer_name: 'Ana', created_at: daysAgo(1, 11), _shots: [['NUB-003', 2]] }),
+      C({ project_id: 'far', display_id: 'FAR-001', type: 'content', priority: 'p2', status: 'implemented', title: 'Beat 6 gives away the ending', where: 'Pack 2, story 019', current_text: 'Cuando por fin abrió la caja, la carta de su abuela ya no estaba.', proposed_text: 'Cuando por fin abrió la caja, se quedó mirando dentro un buen rato.', description: 'Beat 6 makes beat 8 obvious, so the reorder has no tension.', filer_name: 'Diego', created_at: daysAgo(5), batch_id: 'b2', reviewer_note: 'Applied as proposed; also nudged beat 7 so the cue still works.' }),
+      C({ project_id: 'far', display_id: 'FAR-002', type: 'bug', priority: 'p3', status: 'new', title: 'Drag handle hard to grab on phone', where: 'Reorder screen, iPhone 13', steps: '1. Open any story on a phone\n2. Try to drag a beat by its handle', expected: 'Drag starts on the first touch.', actual: 'Takes two or three tries; the handle is tiny.', filer_name: 'Marta', created_at: daysAgo(0, 8), _shots: [['FAR-002', 5]] }),
+      C({ project_id: 'far', display_id: 'FAR-003', type: 'other', priority: 'p3', status: 'new', title: 'Narration runs ahead of the highlight in story 012', where: 'Reader, story 012', description: 'From beat 4 on, the highlighted sentence lags the audio by about half a sentence.', filer_name: 'Ana', created_at: daysAgo(3, 17) }),
+      C({ project_id: 'dnd', display_id: 'DND-001', type: 'bug', priority: 'p1', status: 'new', title: 'Game freezes when the last tower is sold', where: 'Wave 5 or later, desktop Chrome', steps: '1. Reach wave 5\n2. Sell every tower', expected: 'Wave continues and the castle takes damage.', actual: 'Everything stops; the wave timer freezes and no input works.', filer_name: 'Diego', created_at: daysAgo(0, 11) }),
+      C({ project_id: 'dnd', display_id: 'DND-002', type: 'content', priority: 'p3', status: 'new', title: 'Tower name "Ballesta" should be "La ballesta"', where: 'Build menu', current_text: 'Ballesta', proposed_text: 'La ballesta', description: 'All the other towers carry the article.', filer_name: 'Marta', created_at: daysAgo(1, 15) }),
+    ];
+    const shots = {};
+    for (const c of cards) { if (c._shots) { shots[c.id] = c._shots.map(([l, v]) => fakeShot(l, v)); delete c._shots; } }
+    const batches = [
+      { id: 'b1', no: 1, project_id: 'trv', card_ids: [cards[0].id], created_at: daysAgo(10), exported_by: 'Lucía', report: 'TRV-001 — done — gloss changed in cards/batch-01.json (card 3)', reported_at: daysAgo(9) },
+      { id: 'b2', no: 2, project_id: 'far', card_ids: [cards[10].id], created_at: daysAgo(4), exported_by: 'Lucía', report: 'FAR-001 — done — beat 6 replaced as proposed in stories/019.json; beat 7 cue nudged so the ordering still works', reported_at: daysAgo(3) },
+      { id: 'b3', no: 3, project_id: null, card_ids: [cards[1].id, cards[6].id, cards[8].id], created_at: daysAgo(2), exported_by: 'Lucía', report: null, reported_at: null },
+    ];
+    this.s('projects', projects); this.s('cards', cards); this.s('shots', shots); this.s('batches', batches); this.s('batchSeq', 3); this.s('seedv', SEED_V);
+  }
+}
+
+/* ---------- Store (Supabase) ----------
+   Same interface as LocalStore. Cards/projects/batches are tables, screenshots
+   go to the public `screenshots` bucket, the reviewer signs in with an email
+   code. display_id, moved_from, seq and updated_at are all set by database
+   triggers (see schema.sql), never here. */
+function loadScript(src) {
+  return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load ' + src)); document.head.appendChild(s); });
+}
+class SupabaseStore {
+  constructor(cfg) { this.cfg = cfg; this.sb = null; this.shotMap = {}; this.key = lsGet('tessa.key', ''); }
+  async init() {
+    if (!window.supabase) await loadScript('vendor/supabase-2.45.4.js');
+    const headers = this.key ? { 'x-tessa-key': this.key } : {};
+    this.sb = window.supabase.createClient(this.cfg.supabaseUrl, this.cfg.supabaseAnonKey, { global: { headers } });
+  }
+  /* Team passphrase: sent as a header on every request; the database rules require it (see has_key() in schema.sql). */
+  setKey(k) { this.key = k; lsSet('tessa.key', k); }
+  async hasKey() { return !!(await this.q(this.sb.rpc('has_key'))); }
+  async q(p) { const { data, error } = await p; if (error) throw new Error(error.message || String(error)); return data; }
+  url(path) { return this.sb.storage.from('screenshots').getPublicUrl(path).data.publicUrl; }
+  async listProjects() { return this.q(this.sb.from('projects').select('*').order('name')); }
+  async getProject(id) { return this.q(this.sb.from('projects').select('*').eq('id', id).maybeSingle()); }
+  async saveProject(p) {
+    const row = { name: p.name, prefix: p.prefix, repo: p.repo || '', content_path: p.content_path || '', agent_notes: p.agent_notes || '', active: !!p.active };
+    if (p.id) return this.q(this.sb.from('projects').update(row).eq('id', p.id).select().single());
+    return this.q(this.sb.from('projects').insert(row).select().single());
+  }
+  async listCards() {
+    const rows = await this.q(this.sb.from('cards').select('*, screenshots(id, storage_path, sort)').order('created_at'));
+    this.shotMap = {};
+    return rows.map(r => { const s = (r.screenshots || []).slice().sort((a, b) => a.sort - b.sort); this.shotMap[r.id] = s; delete r.screenshots; return r; });
+  }
+  async getCard(id) { return this.q(this.sb.from('cards').select('*').eq('id', id).maybeSingle()); }
+  async createCard(card, shots = []) {
+    const c = await this.q(this.sb.from('cards').insert(card).select().single());
+    await this.uploadShots(c.id, shots, 0);
+    return c;
+  }
+  async uploadShots(cardId, dataUrls, startSort) {
+    for (let i = 0; i < dataUrls.length; i++) {
+      const path = `${cardId}/${Date.now().toString(36)}-${i}.jpg`; const blob = dataUrlToBlob(dataUrls[i]);
+      await this.q(this.sb.storage.from('screenshots').upload(path, blob, { contentType: blob.type || 'image/jpeg' }));
+      await this.q(this.sb.from('screenshots').insert({ card_id: cardId, storage_path: path, sort: startSort + i }));
+    }
+  }
+  async updateCard(id, patch) { return this.q(this.sb.from('cards').update(patch).eq('id', id).select().single()); }
+  async moveCard(id, projectId) { return this.updateCard(id, { project_id: projectId }); }
+  async deleteCard(id) {
+    const rows = await this.q(this.sb.from('screenshots').select('storage_path').eq('card_id', id));
+    if (rows.length) await this.q(this.sb.storage.from('screenshots').remove(rows.map(r => r.storage_path)));
+    await this.q(this.sb.from('cards').delete().eq('id', id));
+    delete this.shotMap[id];
+  }
+  async getShots(cardId) {
+    let rows = this.shotMap[cardId];
+    if (!rows) { rows = await this.q(this.sb.from('screenshots').select('id, storage_path, sort').eq('card_id', cardId).order('sort')); this.shotMap[cardId] = rows; }
+    return rows.map(r => this.url(r.storage_path));
+  }
+  async setShots(cardId, shots) {
+    const rows = await this.q(this.sb.from('screenshots').select('id, storage_path, sort').eq('card_id', cardId).order('sort'));
+    const keep = new Set(shots.filter(s => !s.startsWith('data:')));
+    const drop = rows.filter(r => !keep.has(this.url(r.storage_path)));
+    if (drop.length) {
+      await this.q(this.sb.storage.from('screenshots').remove(drop.map(r => r.storage_path)));
+      await this.q(this.sb.from('screenshots').delete().in('id', drop.map(r => r.id)));
+    }
+    const maxSort = rows.reduce((m, r) => Math.max(m, r.sort), -1);
+    await this.uploadShots(cardId, shots.filter(s => s.startsWith('data:')), maxSort + 1);
+    delete this.shotMap[cardId];
+  }
+  async shotCounts() { const m = {}; for (const k in this.shotMap) m[k] = this.shotMap[k].length; return m; }
+  async listBatches() { return this.q(this.sb.from('batches').select('*').order('no')); }
+  async getBatch(id) { return this.q(this.sb.from('batches').select('*').eq('id', id).maybeSingle()); }
+  async nextBatchNo() { const rows = await this.q(this.sb.from('batches').select('no').order('no', { ascending: false }).limit(1)); return rows.length ? rows[0].no + 1 : 1; }
+  async createBatch(b) { return this.q(this.sb.from('batches').insert(b).select().single()); }
+  async saveReport(batchId, report) { return this.q(this.sb.from('batches').update({ report, reported_at: new Date().toISOString() }).eq('id', batchId).select().single()); }
+  /* auth — reviewer only; filers never sign in */
+  async currentReviewer() {
+    const { data: { session } } = await this.sb.auth.getSession(); if (!session || !session.user || !session.user.email) return null;
+    const email = session.user.email.toLowerCase(); return (await this.isReviewer(email)) ? email : null;
+  }
+  async isReviewer(email) { const rows = await this.q(this.sb.from('reviewers').select('email').eq('email', email)); return rows.length > 0; }
+  async sendCode(email) { await this.q(this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })); }
+  async verifyCode(email, token) { await this.q(this.sb.auth.verifyOtp({ email, token, type: 'email' })); return this.currentReviewer(); }
+  async signOut() { await this.sb.auth.signOut(); }
+}
+const DEMO = !(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
+const store = DEMO ? new LocalStore() : new SupabaseStore(CONFIG);
+
+/* ---------- App state ---------- */
+const state = {
+  view: 'cards',            // cards | review | projects
+  projectId: lsGet('tessa.ui.project', null),
+  me: lsGet('tessa.ui.me', ''),
+  reviewer: lsGet('tessa.ui.reviewer', null),   // email or null
+  filter: { status: 'all' },
+  rf: { project: 'all', status: 'open', type: 'all', pri: 'all' },
+  selection: new Set(),
+  cache: { projects: [], cards: [], shotCounts: {}, batches: [] },
+};
+function persistUi() { lsSet('tessa.ui.project', state.projectId); lsSet('tessa.ui.me', state.me); if (DEMO) lsSet('tessa.ui.reviewer', state.reviewer); }
+async function refresh() {
+  state.cache.projects = await store.listProjects();
+  state.cache.cards = await store.listCards();
+  state.cache.shotCounts = await store.shotCounts();
+  state.cache.batches = state.reviewer ? await store.listBatches() : [];
+  if (!state.projectId || !state.cache.projects.find(p => p.id === state.projectId && p.active)) {
+    state.projectId = (state.cache.projects.find(p => p.active) || {}).id || null;
+  }
+}
+const proj = id => state.cache.projects.find(p => p.id === id);
+const isOpen = s => !['verified', 'rejected'].includes(s);
+
+/* ---------- Rendering: shell ---------- */
+function render() {
+  const app = $('#app');
+  if (!state.reviewer && !['cards'].includes(state.view)) state.view = 'cards';
+  const views = { review: renderReview, projects: renderProjects, batches: renderBatches };
+  app.innerHTML = `${renderTopbar()}<main class="page" id="main">${(views[state.view] || renderCards)()}</main>`;
+}
+function renderTopbar() {
+  const rev = !!state.reviewer;
+  const nav = rev ? `<nav class="nav">
+      <button data-act="view" data-v="cards" class="${state.view === 'cards' ? 'on' : ''}">${ic('layers')}<span class="txt">Cards</span></button>
+      <button data-act="view" data-v="review" class="${state.view === 'review' ? 'on' : ''}">${ic('table')}<span class="txt">Review</span></button>
+      <button data-act="view" data-v="batches" class="${state.view === 'batches' ? 'on' : ''}">${ic('package')}<span class="txt">Batches</span></button>
+      <button data-act="view" data-v="projects" class="${state.view === 'projects' ? 'on' : ''}">${ic('folder')}<span class="txt">Projects</span></button>
+    </nav>` : '';
+  const me = state.me || 'Your name';
+  const right = rev
+    ? `<button class="me-btn" data-act="me-menu" title="${esc(state.reviewer)}"><span class="avatar rev">${esc((state.reviewer || 'R')[0].toUpperCase())}</span><span class="nm">${esc(state.reviewer.split('@')[0])}</span><span class="role">Reviewer</span>${ic('chev')}</button>`
+    : `<button class="me-btn" data-act="edit-me" title="Change your name"><span class="avatar">${esc((state.me || '?')[0].toUpperCase())}</span><span class="nm">${esc(me)}</span></button>`;
+  return `<header class="topbar">
+    <a class="wordmark" href="#" data-act="view" data-v="cards"><span>Tessa<span class="dot">.</span></span>${DEMO ? '<span class="demo">demo</span>' : ''}</a>
+    ${nav}
+    <div class="topbar-right" id="tb-right" style="position:relative">${right}<button class="icon-btn help-btn" data-act="help-menu" title="Help" aria-label="Help">${ic('help', 'lg')}</button></div>
+  </header>`;
+}
+function toggleHelpMenu() {
+  const host = $('#tb-right'); const ex = $('.pop', host); if (ex) { ex.remove(); return; }
+  const pop = document.createElement('div'); pop.className = 'pop right';
+  pop.innerHTML = `<button class="item" data-act="help">${ic('info')}How to file a good card</button>${state.reviewer ? '' : `<hr><button class="item dim" data-act="signin">${ic('user')}Reviewer sign in</button>`}`;
+  host.appendChild(pop);
+}
+function openHelp() {
+  openLayer('modal', `<div class="modal-card sm"><div class="modal-head"><h4>Filing a card</h4>${headBtn}</div>
+    <div class="modal-body" style="font-size:13px;line-height:1.55;color:var(--fg)">
+      <p style="margin:0"><b style="color:var(--fg-1)">One card per issue.</b> Pick the project, say what's wrong in the title, and in <i>Where</i> give enough to find it without asking you — a card number, story, screen, level, or URL.</p>
+      <p style="margin:0"><b style="color:var(--fg-1)">Content</b> — paste the current text exactly as it appears, then write what it should say. Your proposed text is applied as written, so make it final.</p>
+      <p style="margin:0"><b style="color:var(--fg-1)">Bug</b> — list the steps so someone else can make it happen again. A screenshot from your phone is fine.</p>
+      <p style="margin:0"><b style="color:var(--fg-1)">Afterwards</b> — if a card shows <span class="badge st-needs_info">Needs info</span>, open it and answer. When it shows <span class="badge st-implemented">Implemented</span>, open it and confirm whether it's fixed.</p>
+    </div>
+    <div class="modal-foot"><button class="btn primary" data-close="1">Got it</button></div></div>`);
+}
+
+/* ---------- Cards (filer view) ---------- */
+function renderCards() {
+  const p = proj(state.projectId);
+  if (!p) return `<div class="empty"><b>No projects yet</b>A reviewer needs to add one first.</div>`;
+  const all = state.cache.cards.filter(c => c.project_id === p.id);
+  const counts = { all: all.length }; for (const s of STATUSES) counts[s.id] = all.filter(c => c.status === s.id).length;
+  const open = all.filter(c => isOpen(c.status)).length;
+  const f = state.filter.status;
+  let cards = f === 'all' ? all : all.filter(c => c.status === f);
+  cards = cards.slice().sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const chips = [{ id: 'all', label: 'All' }, ...STATUSES].map(s => `<button class="chip ${f === s.id ? 'on' : ''}" data-act="filter" data-s="${s.id}">${esc(s.label)}<span class="n">${counts[s.id]}</span></button>`).join('');
+  return `
+    <div class="page-head">
+      <div>
+        <div class="proj-wrap"><button class="proj-btn" data-act="proj-menu"><h1>${esc(p.name)}</h1>${ic('chev', 'lg chev')}</button><div id="proj-pop"></div></div>
+        <div class="sub"><span class="prefix">${esc(p.prefix)}</span><span>${all.length} card${all.length === 1 ? '' : 's'} · ${open} open</span></div>
+      </div>
+      <div class="actions"><button class="btn primary" data-act="new-card">${ic('plus')}New card</button></div>
+    </div>
+    <div class="filters">${chips}</div>
+    <div class="list">
+      ${cards.length ? cards.map(rowHtml).join('') : `<div class="empty"><b>${f === 'all' ? `No cards yet for ${esc(p.name)}` : `Nothing ${esc(stLabel(f).toLowerCase())}`}</b>${f === 'all' ? 'File the first one — a title and where you saw it is enough.' : 'Try another filter.'}</div>`}
+    </div>
+    <button class="btn primary fab" data-act="new-card">${ic('plus')}New card</button>`;
+}
+function badge(status) { return `<span class="badge st-${status}">${status === 'verified' ? '<span class="chk">✓</span>' : ''}${esc(stLabel(status))}</span>`; }
+function pri(p) { return `<span class="pri pri-${p}">${p.toUpperCase()}</span>`; }
+function rowHtml(c) {
+  const n = state.cache.shotCounts[c.id] || 0;
+  return `<button class="row" data-act="open" data-id="${c.id}">
+    <div class="idline"><span class="idm">${esc(c.display_id)}</span>${badge(c.status)}</div>
+    <div class="main"><div class="title">${esc(c.title)}</div><div class="sub"><span class="type">${esc(tyLabel(c.type))}</span><span>·</span><span>${esc(c.where)}</span></div></div>
+    <div class="meta">
+      ${pri(c.priority)}
+      <span class="shots">${n ? ic('image') + n : ''}</span>
+      <span class="stcol">${badge(c.status)}</span>
+      <span class="who">${esc(c.filer_name)} · ${fmtDate(c.created_at)}</span>
+    </div>
+  </button>`;
+}
+
+/* ---------- Review (reviewer view) ---------- */
+function renderReview() {
+  const rf = state.rf;
+  let cards = state.cache.cards.slice();
+  if (rf.project !== 'all') cards = cards.filter(c => c.project_id === rf.project);
+  if (rf.status === 'open') cards = cards.filter(c => isOpen(c.status)); else if (rf.status !== 'all') cards = cards.filter(c => c.status === rf.status);
+  if (rf.type !== 'all') cards = cards.filter(c => c.type === rf.type);
+  if (rf.pri !== 'all') cards = cards.filter(c => c.priority === rf.pri);
+  const order = { p1: 0, p2: 1, p3: 2 };
+  cards.sort((a, b) => (order[a.priority] - order[b.priority]) || b.created_at.localeCompare(a.created_at));
+  const chip = (grp, id, label, n) => `<button class="chip ${rf[grp] === id ? 'on' : ''}" data-act="rf" data-g="${grp}" data-v="${id}">${esc(label)}${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
+  const allOpen = state.cache.cards.filter(c => isOpen(c.status));
+  const sel = state.selection;
+  const allVisibleSel = cards.length && cards.every(c => sel.has(c.id));
+  return `
+    <div class="page-head">
+      <div><h1>Review</h1><div class="sub">${cards.length} shown · ${allOpen.length} open across ${state.cache.projects.filter(p => p.active).length} projects</div></div>
+      <div class="actions"><button class="btn" data-act="select-visible">${allVisibleSel ? 'Clear selection' : 'Select all shown'}</button></div>
+    </div>
+    ${(() => { const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es')); const cnt = p => state.cache.cards.filter(c => c.project_id === p.id && isOpen(c.status)).length;
+      if (ps.length <= 8) return `<div class="filters"><span class="lbl">Project</span>${chip('project', 'all', 'All')}${ps.map(p => chip('project', p.id, p.name, cnt(p))).join('')}</div>`;
+      const withOpen = ps.filter(p => cnt(p) > 0), rest = ps.filter(p => cnt(p) === 0);
+      const opt = p => `<option value="${p.id}" ${rf.project === p.id ? 'selected' : ''}>${esc(p.name)}${cnt(p) ? ` (${cnt(p)} open)` : ''}</option>`;
+      return `<div class="filters"><span class="lbl">Project</span><select class="filter-sel" data-act="rf-project"><option value="all" ${rf.project === 'all' ? 'selected' : ''}>All projects · ${allOpen.length} open</option>${withOpen.length ? `<optgroup label="With open cards">${withOpen.map(opt).join('')}</optgroup>` : ''}${rest.length ? `<optgroup label="Nothing open">${rest.map(opt).join('')}</optgroup>` : ''}</select></div>`; })()}
+    <div class="filters"><span class="lbl">Status</span>${chip('status', 'open', 'Open')}${STATUSES.map(s => chip('status', s.id, s.label)).join('')}${chip('status', 'all', 'Everything')}</div>
+    <div class="filters"><span class="lbl">Type</span>${chip('type', 'all', 'All')}${TYPES.map(t => chip('type', t.id, t.label)).join('')}
+      <span class="gap"></span><span class="lbl">Priority</span>${chip('pri', 'all', 'All')}${PRIORITIES.map(p => chip('pri', p.id, p.label)).join('')}</div>
+    <div class="table">
+      <div class="trow thead"><span></span><span>ID</span><span>Card</span><span>Project</span><span>Type</span><span>Pri</span><span>Status</span><span>Filed</span></div>
+      ${cards.length ? cards.map(trowHtml).join('') : `<div class="empty"><b>Nothing matches</b>Loosen a filter.</div>`}
+    </div>
+    ${sel.size ? `<div class="selbar">
+      <span class="cnt">${sel.size} selected</span><span class="sep"></span>
+      <select data-act="bulk-status" aria-label="Set status"><option value="">Set status…</option>${STATUSES.map(s => `<option value="${s.id}">${esc(s.label)}</option>`).join('')}</select>
+      <button class="btn primary" data-act="export">${ic('download')}Export…</button>
+      <button class="icon-btn" data-act="clear-sel" title="Clear selection">${ic('x')}</button>
+    </div>` : ''}`;
+}
+function trowHtml(c) {
+  const p = proj(c.project_id) || {}; const on = state.selection.has(c.id);
+  const stSel = `<select class="badge st-sel st-${c.status}" data-act="row-status" data-id="${c.id}" aria-label="Status">${STATUSES.map(s => `<option value="${s.id}" ${s.id === c.status ? 'selected' : ''}>${esc(s.label)}</option>`).join('')}</select>`;
+  return `<div class="trow ${on ? 'sel' : ''}" data-act="open" data-id="${c.id}" role="button" tabindex="0">
+    <span class="cb ${on ? 'on' : ''}" data-act="toggle-sel" data-id="${c.id}" role="checkbox" aria-checked="${on}">${on ? ic('check') : ''}</span>
+    <span class="idm">${esc(c.display_id)}</span>
+    <div class="t"><div class="title">${esc(c.title)}</div><div class="where">${esc(c.where)}</div></div>
+    <span class="proj"><span class="prefix">${esc(p.prefix || '')}</span>${esc(p.name || '')}</span>
+    <span class="type">${esc(tyLabel(c.type))}</span>
+    ${pri(c.priority)}
+    <span class="stwrap">${stSel}</span>
+    <span class="filed">${esc(c.filer_name)} · ${fmtDate(c.created_at)}</span>
+    <div class="mob">${pri(c.priority)}<span class="type">${esc(tyLabel(c.type))}</span>${stSel}<span class="filed">${esc(p.name || '')} · ${esc(c.filer_name)} · ${fmtDate(c.created_at)}</span></div>
+  </div>`;
+}
+
+/* ---------- Projects (reviewer) ---------- */
+function renderProjects() {
+  const ps = state.cache.projects.slice().sort((a, b) => (b.active - a.active) || a.name.localeCompare(b.name));
+  return `
+    <div class="page-head">
+      <div><h1>Projects</h1><div class="sub">Each project carries the routing an agent needs — repo, content path, and notes — stamped into every export.</div></div>
+      <div class="actions"><button class="btn primary" data-act="new-project">${ic('plus')}New project</button></div>
+    </div>
+    <div class="list">
+      <div class="prow thead" style="min-height:32px;background:var(--bg);cursor:default"><span class="eyebrow" style="font-size:10px">Prefix</span><span class="eyebrow" style="font-size:10px">Project</span><span class="eyebrow repo" style="font-size:10px">Repo</span><span class="eyebrow cnts" style="font-size:10px">Cards</span><span class="eyebrow" style="font-size:10px">Active</span></div>
+      ${ps.map(p => {
+        const all = state.cache.cards.filter(c => c.project_id === p.id); const open = all.filter(c => isOpen(c.status)).length;
+        return `<button class="prow ${p.active ? '' : 'off'}" data-act="edit-project" data-id="${p.id}">
+          <span><span class="prefix">${esc(p.prefix)}</span></span>
+          <div><div class="name">${esc(p.name)}</div><div class="path">${esc(p.content_path || '—')}</div></div>
+          <span class="path repo">${esc(p.repo || '—')}</span>
+          <span class="cnts">${open} open · ${all.length} total</span>
+          <span>${p.active ? '<span class="badge st-implemented">On</span>' : '<span class="badge st-rejected">Off</span>'}</span>
+        </button>`; }).join('')}
+    </div>`;
+}
+
+/* ---------- Batches (reviewer) ---------- */
+function batchProjects(b) {
+  const ids = new Set(); for (const cid of b.card_ids) { const c = state.cache.cards.find(x => x.id === cid); if (c) ids.add(c.project_id); }
+  return Array.from(ids).map(proj).filter(Boolean);
+}
+function renderBatches() {
+  const bs = state.cache.batches.slice().sort((a, b) => b.no - a.no);
+  return `
+    <div class="page-head">
+      <div><h1>Batches</h1><div class="sub">Every export is a batch. When the agent is done, open the batch and paste its report — Tessa flips the statuses.</div></div>
+    </div>
+    <div class="list">
+      ${bs.length ? bs.map(b => {
+        const ps = batchProjects(b); const cards = b.card_ids.map(id => state.cache.cards.find(c => c.id === id)).filter(Boolean);
+        const pending = cards.filter(c => c.status === 'in_progress').length;
+        return `<button class="brow" data-act="open-batch" data-id="${b.id}">
+          <span class="idm" style="color:var(--fg-1)">Batch ${b.no}</span>
+          <div class="main"><div class="title">${ps.length ? ps.map(p => `<span class="prefix">${esc(p.prefix)}</span> ${esc(p.name)}`).join(' · ') : '<span class="muted">—</span>'}</div><div class="sub">${cards.length} card${cards.length === 1 ? '' : 's'} · exported ${fmtDate(b.created_at)} by ${esc(b.exported_by || '')}${pending ? ` · ${pending} still in progress` : ''}</div></div>
+          <span>${b.report ? `<span class="badge st-implemented">Report in</span>` : pending ? `<span class="badge st-in_progress">Waiting</span>` : `<span class="badge st-rejected">No report</span>`}</span>
+        </button>`; }).join('') : `<div class="empty"><b>No batches yet</b>Select cards in Review and export them.</div>`}
+    </div>`;
+}
+const REPORT_WORDS = { done: 'implemented', fixed: 'implemented', implemented: 'implemented', applied: 'implemented', skipped: 'needs_info', skip: 'needs_info', blocked: 'needs_info', rejected: 'rejected', reject: 'rejected', wontfix: 'rejected' };
+function parseReport(text, batch) {
+  const out = [];
+  for (const raw of String(text || '').split(/\r?\n/)) {
+    const line = raw.trim(); if (!line) continue;
+    const m = line.match(/^(?:[-*]\s*)?`?([A-Za-z]{2,4}-\d+)`?\s*(?:[—–\-:|]+\s*)([A-Za-z_]+)\s*(?:[—–\-:|]+\s*(.*))?$/);
+    if (!m) { out.push({ raw: line, ok: false, why: 'Not understood — expected "ID — done — what changed"' }); continue; }
+    const id = m[1].toUpperCase(); const word = m[2].toLowerCase(); const note = (m[3] || '').trim();
+    const card = state.cache.cards.find(c => c.display_id === id);
+    if (!card) { out.push({ raw: line, ok: false, id, why: `No card ${id}` }); continue; }
+    const status = REPORT_WORDS[word];
+    if (!status) { out.push({ raw: line, ok: false, id, why: `"${word}" isn't one of done · skipped · blocked · rejected` }); continue; }
+    out.push({ raw: line, ok: true, id, card, status, note, inBatch: batch.card_ids.includes(card.id), same: card.status === status });
+  }
+  return out;
+}
+async function openBatch(id) {
+  const b = await store.getBatch(id); if (!b) return;
+  const cards = b.card_ids.map(cid => state.cache.cards.find(c => c.id === cid)).filter(Boolean);
+  const ps = batchProjects(b);
+  const el = openLayer('drawer', `
+    <div class="drawer-head"><h4><span class="idm" style="font-size:12px;color:var(--fg-1)">Batch ${b.no}</span><span class="muted" style="font-weight:500">${ps.map(p => esc(p.name)).join(' · ')}</span></h4>${headBtn}</div>
+    <div class="drawer-body" id="batch-body">
+      <dl class="kv"><dt>Exported</dt><dd>${fmtDate(b.created_at, true)} by ${esc(b.exported_by || '—')}</dd><dt>Cards</dt><dd>${cards.length}${b.report ? `</dd><dt>Report</dt><dd>pasted ${fmtDate(b.reported_at, true)}` : ''}</dd></dl>
+      <div class="list">${cards.map(c => `<button class="row" data-act="open" data-id="${c.id}" style="min-height:44px;padding:8px 12px">
+        <div class="idline"><span class="idm">${esc(c.display_id)}</span>${badge(c.status)}</div>
+        <div class="main"><div class="title">${esc(c.title)}</div></div>
+        <div class="meta"><span class="stcol">${badge(c.status)}</span></div></button>`).join('')}</div>
+      ${b.report ? `<div class="blk cur" style="font-family:var(--font-mono);font-size:12px"><span class="lbl">Report on file</span>${esc(b.report)}</div>` : ''}
+      <div class="fld"><label for="rp-text">${b.report ? 'Paste a new report' : "Paste the agent's report"}</label><textarea id="rp-text" rows="6" style="font-family:var(--font-mono);font-size:12px" placeholder="${esc(cards[0] ? cards[0].display_id : 'PLZ-014')} — done — what changed, file paths&#10;${esc(cards[1] ? cards[1].display_id : 'PLZ-015')} — skipped — why"></textarea><div class="help">One line per card: <span class="mono">ID — done | skipped | blocked | rejected — note</span>. Done → Implemented, skipped or blocked → Needs info, rejected → Rejected. The note becomes the reviewer note.</div></div>
+      <div id="rp-preview"></div>
+    </div>
+    <div class="drawer-foot"><button class="btn ghost" data-close="1">Close</button><button class="btn" data-act="rp-preview" data-id="${b.id}">${ic('clipboard')}Preview changes</button><button class="btn primary" data-act="rp-apply" data-id="${b.id}" disabled>Apply</button></div>`);
+  $('#rp-text', el).addEventListener('input', () => { $('#rp-preview', el).innerHTML = ''; $('[data-act="rp-apply"]', el).disabled = true; el._changes = null; });
+}
+async function previewReport(batchId) {
+  const b = await store.getBatch(batchId); const el = layerStack[layerStack.length - 1].el;
+  const text = $('#rp-text', el).value; const ch = parseReport(text, b);
+  const host = $('#rp-preview', el);
+  if (!ch.length) { host.innerHTML = `<div class="callout warn">Nothing to read — paste the report first.</div>`; return; }
+  const good = ch.filter(x => x.ok);
+  host.innerHTML = `<div class="eyebrow" style="margin-bottom:8px">What will change</div><div class="list">${ch.map(x => x.ok
+    ? `<div class="row" style="cursor:default;min-height:44px;padding:8px 12px"><span class="idm">${esc(x.id)}</span><div class="main"><div class="title" style="font-weight:400">${badge(x.card.status)} <span class="muted">→</span> ${badge(x.status)}${x.same ? ' <span class="muted">(already)</span>' : ''}${x.inBatch ? '' : ' <span class="muted">· not in this batch</span>'}</div>${x.note ? `<div class="sub" style="white-space:normal">${esc(x.note)}</div>` : ''}</div><span></span></div>`
+    : `<div class="row" style="cursor:default;min-height:44px;padding:8px 12px;background:color-mix(in oklab, var(--warn) 6%, transparent)"><span class="idm" style="color:var(--warn)">?</span><div class="main"><div class="title" style="font-weight:400;color:var(--warn);white-space:normal">${esc(x.why)}</div><div class="sub" style="white-space:normal;font-family:var(--font-mono)">${esc(x.raw)}</div></div><span></span></div>`).join('')}</div>
+    <div class="help" style="margin-top:8px">${good.length} of ${ch.length} line${ch.length === 1 ? '' : 's'} understood${ch.length - good.length ? ' — the rest are left unchanged' : ''}. The raw report is kept on the batch either way.</div>`;
+  el._changes = good; $('[data-act="rp-apply"]', el).disabled = !good.length; $('[data-act="rp-apply"]', el).textContent = `Apply ${good.length} change${good.length === 1 ? '' : 's'}`;
+}
+async function applyReport(batchId) {
+  const el = layerStack[layerStack.length - 1].el; const ch = el._changes; if (!ch || !ch.length) return;
+  const text = $('#rp-text', el).value;
+  for (const x of ch) await store.updateCard(x.card.id, { status: x.status, ...(x.note ? { reviewer_note: x.note } : {}) });
+  await store.saveReport(batchId, text);
+  closeLayer(); await refresh(); render();
+  toast(`${ic('check')}Batch report applied · ${ch.length} card${ch.length === 1 ? '' : 's'} updated`);
+  setTimeout(() => openBatch(batchId), 220);
+}
+
+/* ---------- Layer helpers (drawer / modal / popover) ---------- */
+let layerStack = [];
+function openLayer(kind, html, opts = {}) {
+  const layer = $('#layer');
+  const scrim = document.createElement('div'); scrim.className = 'scrim'; scrim.dataset.close = '1';
+  const el = document.createElement('div');
+  el.className = kind === 'drawer' ? 'drawer' : kind === 'lightbox' ? 'lightbox' : 'modal';
+  el.innerHTML = html;
+  if (kind !== 'lightbox') layer.appendChild(scrim);
+  layer.appendChild(el);
+  const entry = { kind, el, scrim, onClose: opts.onClose };
+  layerStack.push(entry);
+  requestAnimationFrame(() => { scrim.classList.add('show'); el.classList.add('show'); });
+  const first = el.querySelector('[autofocus]'); if (first) setTimeout(() => first.focus(), 60);
+  return el;
+}
+function closeLayer() {
+  const e = layerStack.pop(); if (!e) return;
+  e.el.classList.remove('show'); e.scrim.classList.remove('show');
+  setTimeout(() => { e.el.remove(); e.scrim.remove(); }, e.kind === 'drawer' ? 200 : 0);
+  if (e.onClose) e.onClose();
+}
+function closeAll() { while (layerStack.length) closeLayer(); }
+const headBtn = `<button class="icon-btn" data-close="1" aria-label="Close">${ic('x')}</button>`;
+
+/* ---------- Project picker popover ---------- */
+function toggleProjPop() {
+  const host = $('#proj-pop'); if (!host) return;
+  if (host.innerHTML) { host.innerHTML = ''; return; }
+  const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  host.innerHTML = `<div class="pop pop-proj"><div class="hd">Project</div><input class="pop-search" id="proj-search" type="search" placeholder="Type to find…" autocomplete="off"><div class="pop-list">${ps.map(p => {
+    const n = state.cache.cards.filter(c => c.project_id === p.id && isOpen(c.status)).length;
+    return `<button class="item ${p.id === state.projectId ? 'on' : ''}" data-act="pick-project" data-id="${p.id}" data-search="${esc((p.name + ' ' + p.prefix).toLowerCase())}"><span class="prefix">${esc(p.prefix)}</span>${esc(p.name)}<span class="n">${n} open</span></button>`; }).join('')}</div></div>`;
+  const inp = $('#proj-search');
+  inp.addEventListener('input', () => { const q = inp.value.trim().toLowerCase(); $$('.pop-list .item', host).forEach(b => { b.hidden = !!q && !b.dataset.search.includes(q); }); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const first = $$('.pop-list .item', host).find(b => !b.hidden); if (first) first.click(); } });
+  if (window.innerWidth > 720) inp.focus();
+}
+
+/* ---------- New card drawer ---------- */
+const WHERE_PH = { content: 'Card number, story, screen, or the line itself', bug: 'Screen or level · device · browser', feature: 'Screen or area it relates to', other: 'Screen or area it relates to' };
+let draft = null; // { type, priority, shots: [dataUrl], editId?, editCard? }
+const EDITABLE = ['title', 'where', 'description', 'current_text', 'proposed_text', 'steps', 'expected', 'actual', 'type', 'priority'];
+const FIELD_LABEL = { title: 'Title', where: 'Where', description: 'Details', current_text: 'Current text', proposed_text: 'Proposed text', steps: 'Steps', expected: 'Expected', actual: 'Actual', type: 'Type', priority: 'Priority' };
+const reviewerName = () => state.me || (state.reviewer || 'reviewer').split('@')[0];
+function openNewCard() { openCardForm(null); }
+async function openEditCard(id) {
+  const c = await store.getCard(id); if (!c) return;
+  const shots = await store.getShots(id);
+  closeLayer(); // close the detail drawer first
+  setTimeout(() => openCardForm(c, shots), 210);
+}
+function openCardForm(card, shots = []) {
+  const p = proj(card ? card.project_id : state.projectId); if (!p) return;
+  const edit = !!card; const c = card || {};
+  draft = { type: c.type || 'content', priority: c.priority || 'p2', shots: shots.slice(), editId: edit ? c.id : null, editCard: edit ? c : null };
+  const el = openLayer('drawer', `
+    <div class="drawer-head"><h4>${edit ? `Edit <span class="idm" style="font-size:12px;color:var(--fg-1)">${esc(c.display_id)}</span>` : 'New card'} <span class="prefix">${esc(p.prefix)}</span><span class="muted" style="font-weight:500">${esc(p.name)}</span></h4>${headBtn}</div>
+    <form class="drawer-body" id="card-form" novalidate>
+      ${edit ? `<div class="note" style="border-left-color:var(--info)"><span class="lbl">Reviewer edit</span>${esc(c.filer_name)}'s original is kept on the card and the export will say "edited by ${esc(reviewerName())}".</div>` : ''}
+      <div class="fld"><label for="f-proj">Project</label><select id="f-proj" name="project_id">${state.cache.projects.filter(x => x.active || x.id === p.id).map(x => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${esc(x.name)} · ${esc(x.prefix)}</option>`).join('')}</select>${edit ? `<div class="help">Moving it to another project gives it a new ID under that prefix; ${esc(c.display_id)} stays on the card as its old ID.</div>` : ''}</div>
+      <div class="fld"><label>Type</label><div class="seg grow" id="seg-type">${TYPES.map(t => `<button type="button" class="${t.id === draft.type ? 'on' : ''}" data-act="set-type" data-v="${t.id}">${esc(t.label)}</button>`).join('')}</div></div>
+      <div class="fld" data-f="title"><label for="f-title">Title</label><input type="text" id="f-title" name="title" value="${esc(c.title || '')}" placeholder="One line: what's wrong" autofocus autocomplete="off"><div class="errmsg">Give it a title.</div></div>
+      <div class="fld" data-f="where"><label for="f-where">Where</label><input type="text" id="f-where" name="where" value="${esc(c.where || '')}" placeholder="${esc(WHERE_PH[draft.type])}" autocomplete="off"><div class="help">Enough to find it without asking you. Card number, level, story, URL.</div><div class="errmsg">Say where you saw it — a card number, level, story, or URL.</div></div>
+      <div id="type-fields">${typeFieldsHtml(draft.type, c)}</div>
+      <div class="fld"><label for="f-desc">Details<span class="opt">optional</span></label><textarea id="f-desc" name="description" placeholder="Anything else that helps — what you expected, who noticed, how often.">${esc(c.description || '')}</textarea></div>
+      <div class="fld"><label>Priority</label><div class="seg grow" id="seg-pri">${PRIORITIES.map(q => `<button type="button" class="${q.id === draft.priority ? 'on' : ''}" data-act="set-pri" data-v="${q.id}">${q.label}<span class="sub">${q.sub}</span></button>`).join('')}</div></div>
+      <div class="fld"><label>Screenshots<span class="opt">optional · up to ${MAX_SHOTS}</span></label>
+        <div class="thumbs" id="draft-thumbs" hidden></div>
+        <label class="drop" id="drop" for="f-files">${ic('image', 'lg')}<span><b>Drop, paste, or tap to choose</b></span><span>PNG or JPG · phone screenshots are fine</span></label>
+        <input type="file" id="f-files" accept="image/*" multiple class="sr">
+      </div>
+      ${edit
+        ? `<div class="fld"><label for="f-me">Filed by</label><input type="text" id="f-me" name="filer_name" value="${esc(c.filer_name)}" readonly style="color:var(--fg-3)"><div class="help">The filer's name stays theirs.</div></div>`
+        : `<div class="fld" data-f="me"><label for="f-me">Your name</label><input type="text" id="f-me" name="filer_name" value="${esc(state.me)}" placeholder="So the reviewer can ask you about it" autocomplete="name"><div class="errmsg">Add your name so the reviewer can follow up.</div></div>`}
+    </form>
+    <div class="drawer-foot"><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="submit-card">${edit ? 'Save changes' : 'File card'}</button></div>`, { onClose: () => { draft = null; } });
+  renderDraftThumbs();
+  $('#f-files', el).addEventListener('change', e => addFiles(e.target.files));
+  const drop = $('#drop', el);
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer.files); });
+}
+function typeFieldsHtml(t, c = {}) {
+  if (t === 'content') return `
+    <div class="fld" data-f="current_text"><label for="f-cur">Current text</label><textarea id="f-cur" name="current_text" rows="2" placeholder="Paste it exactly as it appears">${esc(c.current_text || '')}</textarea><div class="errmsg">Paste the text as it appears now.</div></div>
+    <div class="fld" data-f="proposed_text"><label for="f-prop">Proposed text</label><textarea id="f-prop" name="proposed_text" rows="2" placeholder="What it should say">${esc(c.proposed_text || '')}</textarea><div class="help">You're the expert — write the fix and it gets applied as written.</div><div class="errmsg">Write what it should say.</div></div>`;
+  if (t === 'bug') return `
+    <div class="fld" data-f="steps"><label for="f-steps">Steps to reproduce</label><textarea id="f-steps" name="steps" placeholder="1. Open …&#10;2. Tap …&#10;3. …">${esc(c.steps || '')}</textarea><div class="errmsg">List the steps — someone else has to make it happen again.</div></div>
+    <div class="two">
+      <div class="fld"><label for="f-exp">Expected</label><input type="text" id="f-exp" name="expected" value="${esc(c.expected || '')}" placeholder="What should happen"></div>
+      <div class="fld"><label for="f-act">Actual</label><input type="text" id="f-act" name="actual" value="${esc(c.actual || '')}" placeholder="What happens instead"></div>
+    </div>`;
+  return '';
+}
+async function addFiles(files) {
+  if (!draft) return;
+  const list = Array.from(files || []).filter(f => f.type.startsWith('image/'));
+  if (!list.length) return;
+  const room = MAX_SHOTS - draft.shots.length;
+  if (room <= 0) { toast(`Up to ${MAX_SHOTS} screenshots per card`); return; }
+  for (const f of list.slice(0, room)) { try { draft.shots.push(await downscale(f)); } catch (e) { toast('Could not read that image'); } }
+  if (list.length > room) toast(`Only the first ${room} added — ${MAX_SHOTS} per card`);
+  renderDraftThumbs();
+}
+function downscale(file, max = 1600, q = 0.82) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url); res(cv.toDataURL('image/jpeg', q));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(); }; img.src = url;
+  });
+}
+function renderDraftThumbs() {
+  const host = $('#draft-thumbs'); if (!host || !draft) return;
+  host.hidden = !draft.shots.length;
+  host.innerHTML = draft.shots.map((s, i) => `<span class="thumb"><img src="${s}" alt="Screenshot ${i + 1}"><span class="k">${i + 1}</span><span class="rm" data-act="rm-shot" data-i="${i}" role="button" aria-label="Remove">${ic('x')}</span></span>`).join('');
+}
+async function submitCard() {
+  const form = $('#card-form'); if (!form || !draft) return;
+  const v = n => (form.elements[n] ? form.elements[n].value.trim() : '');
+  let ok = true;
+  const need = (f, cond) => { const w = form.querySelector(`[data-f="${f}"]`); if (!w) return; w.classList.toggle('err', !cond); if (!cond) ok = false; };
+  need('title', v('title')); need('where', v('where')); if (!draft.editId) need('me', v('filer_name'));
+  if (draft.type === 'content') { need('current_text', v('current_text')); need('proposed_text', v('proposed_text')); }
+  if (draft.type === 'bug') need('steps', v('steps'));
+  if (!ok) { const first = form.querySelector('.fld.err input, .fld.err textarea'); if (first) first.focus(); return; }
+  const fields = { type: draft.type, priority: draft.priority, title: v('title'), where: v('where'), description: v('description') };
+  if (draft.type === 'content') { fields.current_text = v('current_text'); fields.proposed_text = v('proposed_text'); }
+  if (draft.type === 'bug') { fields.steps = v('steps'); fields.expected = v('expected'); fields.actual = v('actual'); }
+  const projectId = v('project_id') || state.projectId;
+  if (draft.editId) {
+    const prev = draft.editCard;
+    const patch = { ...fields, edited_by: reviewerName(), edited_at: new Date().toISOString() };
+    if (!prev.original) { const o = {}; for (const k of EDITABLE) o[k] = prev[k] || ''; patch.original = o; }
+    await store.updateCard(draft.editId, patch);
+    await store.setShots(draft.editId, draft.shots);
+    let moved = null;
+    if (projectId !== prev.project_id) moved = await store.moveCard(draft.editId, projectId);
+    const id = draft.editId; closeLayer(); await refresh(); render();
+    toast(moved ? `${ic('check')}<span class="idm">${esc(prev.display_id)}</span> moved → <span class="idm">${esc(moved.display_id)}</span>` : `${ic('check')}<span class="idm">${esc(prev.display_id)}</span> updated`);
+    setTimeout(() => openCard(id), 220);
+    return;
+  }
+  state.me = v('filer_name'); persistUi();
+  const c = await store.createCard({ project_id: projectId, filer_name: state.me, ...fields }, draft.shots);
+  if (projectId !== state.projectId) { state.projectId = projectId; state.filter.status = 'all'; persistUi(); }
+  closeLayer(); await refresh(); render();
+  toast(`${ic('check')}<span class="idm">${esc(c.display_id)}</span> filed`);
+}
+function originalHtml(c) {
+  if (!c.original) return '';
+  const diffs = EDITABLE.filter(k => (c.original[k] || '') !== (c[k] || ''));
+  if (!diffs.length) return '';
+  const show = k => k === 'type' ? tyLabel(c.original[k]) : k === 'priority' ? c.original[k].toUpperCase() : (c.original[k] || '—');
+  return `<div id="orig-wrap"><button class="btn ghost sm" data-act="toggle-original" id="orig-btn">${ic('chev')}Show ${esc(c.filer_name)}'s original (${diffs.length} field${diffs.length === 1 ? '' : 's'} changed)</button>
+    <div id="orig-body" hidden style="display:grid;gap:8px;margin-top:8px">${diffs.map(k => `<div class="blk cur"><span class="lbl">Original ${esc(FIELD_LABEL[k])}</span>${esc(show(k))}</div>`).join('')}</div></div>`;
+}
+
+/* ---------- Card detail drawer ---------- */
+async function openCard(id) {
+  const c = await store.getCard(id); if (!c) return;
+  const p = proj(c.project_id) || {}; const shots = await store.getShots(id); const rev = !!state.reviewer;
+  const batches = await store.listBatches(); const b = batches.find(x => x.id === c.batch_id);
+  const body = [];
+  body.push(`<h3 class="detail-title">${esc(c.title)}</h3>`);
+  body.push(`<div class="detail-tags">${badge(c.status)}${pri(c.priority)}<span class="type">${esc(tyLabel(c.type))}</span></div>`);
+  body.push(`<dl class="kv"><dt>Where</dt><dd>${esc(c.where)}</dd><dt>Filed by</dt><dd>${esc(c.filer_name)} · ${fmtDate(c.created_at, true)}</dd>${c.edited_by ? `<dt>Edited by</dt><dd>${esc(c.edited_by)} · ${fmtDate(c.edited_at, true)}</dd>` : ''}${c.moved_from ? `<dt>Was</dt><dd><span class="idm" style="color:var(--fg-1)">${esc(c.moved_from)}</span> <span class="muted">before it was moved here</span></dd>` : ''}${b ? `<dt>Batch</dt><dd>${rev ? `<a href="#" data-act="open-batch" data-id="${b.id}">Batch ${b.no}</a>` : `Batch ${b.no}`} · exported ${fmtDate(b.created_at, true)}${b.report ? ' · report in' : ''}</dd>` : ''}</dl>`);
+  if (c.type === 'content') body.push(`<div style="display:grid;gap:8px"><div class="blk cur"><span class="lbl">Current</span>${esc(c.current_text)}</div><div class="blk prop"><span class="lbl">Proposed</span>${esc(c.proposed_text)}</div></div>`);
+  if (c.type === 'bug') body.push(`<div style="display:grid;gap:8px"><div class="blk"><span class="lbl">Steps</span>${esc(c.steps)}</div>${c.expected || c.actual ? `<div class="two"><div class="blk"><span class="lbl">Expected</span>${esc(c.expected || '—')}</div><div class="blk"><span class="lbl">Actual</span>${esc(c.actual || '—')}</div></div>` : ''}</div>`);
+  if (c.description) body.push(`<div><div class="eyebrow" style="margin-bottom:6px">Details</div><div style="font-size:13px;line-height:1.55;color:var(--fg);white-space:pre-wrap">${esc(c.description)}</div></div>`);
+  if (shots.length) body.push(`<div><div class="eyebrow" style="margin-bottom:8px">Screenshots · ${shots.length}</div><div class="thumbs">${shots.map((s, i) => `<button type="button" class="thumb" data-act="lightbox" data-id="${c.id}" data-i="${i}"><img src="${s}" alt="Screenshot ${i + 1}"><span class="k">${i + 1}</span></button>`).join('')}</div></div>`);
+  body.push(originalHtml(c));
+  if (c.reviewer_note) body.push(`<div class="note"><span class="lbl">Reviewer note</span>${esc(c.reviewer_note)}</div>`);
+  if (c.filer_reply) body.push(`<div class="note reply"><span class="lbl">Reply from ${esc(c.filer_name)}</span>${esc(c.filer_reply)}</div>`);
+  if (!rev && c.status === 'needs_info') body.push(`<div class="callout warn"><span>The reviewer needs more information before this can move on.</span><div class="fld"><textarea id="f-reply" placeholder="Answer here — device, version, what you tried…"></textarea></div><div class="acts"><button class="btn primary sm" data-act="send-reply" data-id="${c.id}">${ic('reply')}Send reply</button></div></div>`);
+  if (!rev && c.status === 'implemented') body.push(`<div class="callout" id="verify-box"><span>This has been implemented. Does it look right to you now?</span><div class="acts"><button class="btn primary sm" data-act="verify" data-id="${c.id}">${ic('check')}Yes, it's fixed</button><button class="btn sm" data-act="still-broken">Still not right…</button></div><div class="fld" id="still-fld" hidden><textarea id="f-reply" placeholder="What's still wrong? Where did you look?"></textarea><div class="acts"><button class="btn primary sm" data-act="send-reopen" data-id="${c.id}">${ic('reply')}Send it back</button></div></div></div>`);
+  if (rev) body.push(`<div class="triage"><div class="hd"><span class="eyebrow">Triage</span><span style="display:flex;gap:6px"><button class="btn sm" data-act="edit-card" data-id="${c.id}">${ic('pencil')}Edit card</button><button class="btn danger sm" data-act="delete-card" data-id="${c.id}">${ic('trash')}Delete</button></span></div>
+      <div class="two">
+        <div class="fld"><label for="t-status">Status</label><select id="t-status">${STATUSES.map(s => `<option value="${s.id}" ${s.id === c.status ? 'selected' : ''}>${esc(s.label)}</option>`).join('')}</select></div>
+        <div class="fld"><label for="t-type">Type</label><select id="t-type">${TYPES.map(t => `<option value="${t.id}" ${t.id === c.type ? 'selected' : ''}>${esc(t.label)}</option>`).join('')}</select></div>
+      </div>
+      <div class="fld"><label>Priority</label><div class="seg grow" id="t-pri">${PRIORITIES.map(q => `<button type="button" class="${q.id === c.priority ? 'on' : ''}" data-act="t-set-pri" data-v="${q.id}">${q.label}<span class="sub">${q.sub}</span></button>`).join('')}</div></div>
+      <div class="fld"><label for="t-note">Reviewer note<span class="opt">shown to the filer and in the export</span></label><textarea id="t-note" placeholder="A question for the filer, a reason for rejecting, or context for the agent.">${esc(c.reviewer_note)}</textarea></div>
+      <div style="display:flex;justify-content:flex-end"><button class="btn primary" data-act="save-triage" data-id="${c.id}">Save</button></div>
+    </div>`);
+  openLayer('drawer', `
+    <div class="drawer-head"><h4><span class="idm" style="font-size:12px;color:var(--fg-1)">${esc(c.display_id)}</span><span class="prefix">${esc(p.prefix || '')}</span><span class="muted" style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name || '')}</span></h4>${headBtn}</div>
+    <div class="drawer-body" data-card="${c.id}" data-pri="${c.priority}">${body.join('')}</div>`);
+}
+
+/* ---------- Lightbox ---------- */
+async function openLightbox(cardId, i) {
+  const shots = await store.getShots(cardId); const c = await store.getCard(cardId);
+  let idx = i;
+  const el = openLayer('lightbox', '');
+  const paint = () => { el.innerHTML = `<img src="${shots[idx]}" alt="Screenshot ${idx + 1}">
+    <button class="icon-btn lb-close" data-close="1" aria-label="Close">${ic('x', 'lg')}</button>
+    ${shots.length > 1 ? `<button class="lb-nav lb-prev" data-lb="-1" aria-label="Previous">${ic('chevL', 'lg')}</button><button class="lb-nav lb-next" data-lb="1" aria-label="Next">${ic('chevR', 'lg')}</button>` : ''}
+    <span class="lb-cap">${esc(c.display_id)} · ${idx + 1} / ${shots.length}</span>`; };
+  paint();
+  el.addEventListener('click', e => { const n = e.target.closest('[data-lb]'); if (n) { idx = (idx + Number(n.dataset.lb) + shots.length) % shots.length; paint(); e.stopPropagation(); } else if (e.target === el || e.target.tagName === 'IMG') closeLayer(); });
+}
+
+/* ---------- Sign in ---------- */
+function openSignin() {
+  $$('.pop').forEach(p => p.remove());
+  const el = openLayer('modal', `<div class="modal-card sm">
+    <div class="modal-head"><h4>Reviewer sign in</h4>${headBtn}</div>
+    <form class="modal-body" id="signin-form">
+      <div class="fld" id="email-fld"><label for="s-email">Email</label><input type="email" id="s-email" placeholder="you@example.com" autofocus autocomplete="email"><div class="help">We'll email you a 6-digit code. Only addresses on the reviewer list get in.</div><div class="errmsg">That doesn't look like an email address.</div></div>
+      <div class="fld" id="code-fld" hidden><label for="s-code">Code</label><input type="text" id="s-code" class="code-in" inputmode="numeric" maxlength="6" placeholder="······" autocomplete="one-time-code"><div class="help">${DEMO ? 'Demo mode — any six digits work.' : 'From the email you just got. If the email has a link instead, clicking it also signs you in.'}</div><div class="errmsg">Six digits.</div></div>
+    </form>
+    <div class="modal-foot"><span class="left" id="s-hint"></span><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="signin-next" id="s-next">${ic('mail')}Send code</button></div>
+  </div>`);
+  $('#signin-form', el).addEventListener('submit', e => { e.preventDefault(); signinNext(); });
+}
+async function signinNext() {
+  const emailIn = $('#s-email'); const email = emailIn.value.trim().toLowerCase(); const codeFld = $('#code-fld'); const next = $('#s-next');
+  if (codeFld.hidden) {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $('#email-fld').classList.add('err'); return; }
+    $('#email-fld').classList.remove('err');
+    if (!DEMO) {
+      next.disabled = true; next.textContent = 'Sending…';
+      try { await store.sendCode(email); } catch (e) { next.disabled = false; next.innerHTML = `${ic('mail')}Send code`; $('#s-hint').textContent = 'Could not send: ' + e.message; return; }
+      next.disabled = false;
+    }
+    codeFld.hidden = false; $('#s-code').focus(); next.innerHTML = `${ic('check')}Sign in`; $('#s-hint').textContent = `Code sent to ${email}`; emailIn.readOnly = true; return;
+  }
+  const code = $('#s-code').value.trim();
+  if (!/^\d{6}$/.test(code)) { codeFld.classList.add('err'); return; }
+  codeFld.classList.remove('err');
+  if (DEMO) { finishSignin(email); return; }
+  next.disabled = true; next.textContent = 'Checking…';
+  try {
+    const who = await store.verifyCode(email, code);
+    if (!who) { await store.signOut(); $('#s-hint').textContent = 'That address isn\'t on the reviewer list.'; next.disabled = false; next.innerHTML = `${ic('check')}Sign in`; return; }
+    finishSignin(who);
+  } catch (e) { $('#s-hint').textContent = e.message; next.disabled = false; next.innerHTML = `${ic('check')}Sign in`; }
+}
+async function finishSignin(email) {
+  state.reviewer = email; state.view = 'review'; persistUi(); closeLayer(); await refresh(); render(); toast('Signed in as reviewer');
+}
+async function signOut() {
+  if (!DEMO) { try { await store.signOut(); } catch (e) { /* session is gone either way */ } }
+  state.reviewer = null; state.view = 'cards'; state.selection.clear(); persistUi(); await refresh(); render(); toast('Signed out');
+}
+function toggleMeMenu() {
+  const host = $('#tb-right'); const ex = $('.pop', host); if (ex) { ex.remove(); return; }
+  const pop = document.createElement('div'); pop.className = 'pop right';
+  pop.innerHTML = `<div class="hd">${esc(state.reviewer)}</div><button class="item" data-act="edit-me">${ic('user')}Your name for exports${state.me ? ` <span class="n">${esc(state.me)}</span>` : ''}</button><hr><button class="item dim" data-act="signout">${ic('logout')}Sign out</button>`;
+  host.appendChild(pop);
+}
+function openEditMe() {
+  const el = openLayer('modal', `<div class="modal-card sm"><div class="modal-head"><h4>Your name</h4>${headBtn}</div>
+    <form class="modal-body" id="me-form"><div class="fld"><label for="m-name">Name</label><input type="text" id="m-name" value="${esc(state.me)}" placeholder="First name is fine" autofocus autocomplete="name"><div class="help">Goes on the cards you file and on exports you make. Remembered on this device.</div></div></form>
+    <div class="modal-foot"><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="save-me">Save</button></div></div>`);
+  $('#me-form', el).addEventListener('submit', e => { e.preventDefault(); saveMe(); });
+}
+function saveMe() { state.me = $('#m-name').value.trim(); persistUi(); closeLayer(); render(); }
+
+/* ---------- Project editor ---------- */
+function openProjectEditor(id) {
+  const p = id ? proj(id) : { id: null, name: '', prefix: '', repo: '', content_path: '', agent_notes: '', active: true };
+  const el = openLayer('drawer', `
+    <div class="drawer-head"><h4>${id ? 'Edit project' : 'New project'}</h4>${headBtn}</div>
+    <form class="drawer-body" id="proj-form" novalidate>
+      <div class="two">
+        <div class="fld" data-f="name"><label for="p-name">Name</label><input type="text" id="p-name" name="name" value="${esc(p.name)}" placeholder="As editors know it" autofocus><div class="errmsg">Needs a name.</div></div>
+        <div class="fld" data-f="prefix"><label for="p-prefix">Prefix</label><input type="text" id="p-prefix" name="prefix" value="${esc(p.prefix)}" placeholder="ESP" maxlength="4" style="font-family:var(--font-mono);text-transform:uppercase" ${id ? 'readonly' : ''}><div class="help">${id ? 'Fixed once cards exist.' : '2–4 letters. Cards become ESP-001, ESP-002…'}</div><div class="errmsg">2–4 letters.</div></div>
+      </div>
+      <div class="form-sec"><div class="eyebrow">Routing — what the agent gets</div>
+        <div class="fld"><label for="p-repo">Repo</label><input type="text" id="p-repo" name="repo" value="${esc(p.repo)}" placeholder="curious-spanish/espadita" style="font-family:var(--font-mono);font-size:13px"></div>
+        <div class="fld"><label for="p-path">Content path</label><input type="text" id="p-path" name="content_path" value="${esc(p.content_path)}" placeholder="cards/" style="font-family:var(--font-mono);font-size:13px"><div class="help">Where the content an editor sees actually lives in the repo.</div></div>
+        <div class="fld"><label for="p-notes">Agent notes</label><textarea id="p-notes" name="agent_notes" rows="4" placeholder="File layout, field names, register rules, anything an agent would otherwise have to discover.">${esc(p.agent_notes)}</textarea><div class="help">Copied verbatim into every export for this project. This is where your knowledge of the app goes.</div></div>
+      </div>
+      <div class="form-sec"><div class="toggle-row"><div><div class="toggle-row-title">Active</div><div class="toggle-row-sub">Inactive projects are hidden from filers; their cards stay.</div></div><label class="switch"><input type="checkbox" id="p-active" ${p.active ? 'checked' : ''}><span class="switch-track"><span class="switch-thumb"></span></span></label></div></div>
+    </form>
+    <div class="drawer-foot"><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="save-project" data-id="${id || ''}">Save</button></div>`);
+  $('#proj-form', el).addEventListener('submit', e => { e.preventDefault(); saveProject(id); });
+}
+async function saveProject(id) {
+  const f = $('#proj-form'); const v = n => f.elements[n].value.trim();
+  let ok = true; const need = (n, cond) => { const w = f.querySelector(`[data-f="${n}"]`); w.classList.toggle('err', !cond); if (!cond) ok = false; };
+  const prefix = v('prefix').toUpperCase();
+  need('name', v('name')); need('prefix', /^[A-Z]{2,4}$/.test(prefix));
+  if (!ok) return;
+  if (!id && state.cache.projects.some(p => p.prefix === prefix)) { f.querySelector('[data-f="prefix"]').classList.add('err'); f.querySelector('[data-f="prefix"] .errmsg').textContent = 'That prefix is taken.'; return; }
+  const p = { id: id || null, name: v('name'), prefix, repo: v('repo'), content_path: v('content_path'), agent_notes: v('agent_notes'), active: $('#p-active').checked };
+  await store.saveProject(p); closeLayer(); await refresh(); render(); toast(`${esc(p.name)} saved`);
+}
+
+/* ---------- Export ---------- */
+function exportPlan(cardIds) {
+  const cards = state.cache.cards.filter(c => cardIds.includes(c.id));
+  const byProj = {}; for (const c of cards) (byProj[c.project_id] = byProj[c.project_id] || []).push(c);
+  const order = { p1: 0, p2: 1, p3: 2 };
+  return Object.keys(byProj).map(pid => ({ project: proj(pid), cards: byProj[pid].sort((a, b) => (order[a.priority] - order[b.priority]) || a.display_id.localeCompare(b.display_id)) }));
+}
+const dataUrlExt = u => u.startsWith('data:') ? (u.startsWith('data:image/svg') ? 'svg' : u.startsWith('data:image/png') ? 'png' : 'jpg') : ((u.split('?')[0].match(/\.(jpe?g|png|webp|svg)$/i) || [])[1] || 'jpg').toLowerCase().replace('jpeg', 'jpg');
+async function shotBlob(u) { if (u.startsWith('data:')) return dataUrlToBlob(u); const r = await fetch(u); if (!r.ok) throw new Error('screenshot ' + r.status); return r.blob(); }
+async function buildMarkdown(group, batchNo, exporter) {
+  const p = group.project; const today = fmtDate(new Date().toISOString(), true);
+  const L = [];
+  L.push(`# Tessa batch ${batchNo} — ${p.name}`);
+  L.push(`Exported ${today} by ${exporter || 'the reviewer'}. ${group.cards.length} card${group.cards.length === 1 ? '' : 's'}.`, '');
+  L.push('## How to use this file');
+  L.push(`You are fixing the items below in the ${p.name} repo${p.repo ? ` (${p.repo})` : ''}. Work through them in priority order (P1 first). Content edits: locate the item by searching for the Current text under the content path, then apply the Proposed text exactly unless it breaks something, and say so if it does. Bugs: reproduce before fixing. Screenshots are in the screenshots/ folder next to this file. When done, report back using the template at the end — one line per card ID.`, '');
+  L.push('## Project');
+  L.push(`- Repo: ${p.repo || '(not set)'}`); L.push(`- Content path: ${p.content_path || '(not set)'}`);
+  L.push(`- Notes: ${p.agent_notes || '(not set)'}`);
+  L.push('', '---', '');
+  for (const c of group.cards) {
+    const shots = await store.getShots(c.id);
+    L.push(`## ${c.display_id} · ${c.priority.toUpperCase()} · ${c.type}`);
+    L.push(`**Where:** ${c.where}`); L.push(`**Title:** ${c.title}`);
+    if (c.moved_from) L.push(`**Previously:** ${c.moved_from} (moved to this project by the reviewer)`);
+    if (c.type === 'content') { L.push(`**Current text:** ${c.current_text}`); L.push(`**Proposed text:** ${c.proposed_text}`); }
+    if (c.type === 'bug') { L.push(`**Steps:**`, ...c.steps.split('\n').map(s => `  ${s}`)); if (c.expected) L.push(`**Expected:** ${c.expected}`); if (c.actual) L.push(`**Actual:** ${c.actual}`); }
+    if (c.description) L.push(`**Details:** ${c.description}`);
+    L.push(`**Screenshots:** ${shots.length ? shots.map((s, i) => `screenshots/${c.display_id}-${i + 1}.${dataUrlExt(s)}`).join(', ') : 'none'}`);
+    L.push(`**Filed by:** ${c.filer_name}, ${fmtDate(c.created_at, true)}${c.edited_by ? ` (edited by ${c.edited_by}, ${fmtDate(c.edited_at, true)})` : ''}`);
+    if (c.filer_reply) L.push(`**Filer reply:** ${c.filer_reply}`);
+    if (c.reviewer_note) L.push(`**Reviewer note:** ${c.reviewer_note}`);
+    L.push('');
+  }
+  L.push('---', '', '## Report back', 'One line per card, in this exact shape — the reviewer pastes these lines into Tessa and it updates the cards:');
+  for (const c of group.cards) L.push(`${c.display_id} — done — <what changed, file paths>`);
+  L.push('Instead of `done` use `skipped — <why>` or `blocked — <what you need>` (both send the card back to the reviewer as Needs info) or `rejected — <why>`.', '');
+  return L.join('\n');
+}
+async function buildFiles(groups, batchNo, exporter) {
+  const files = []; for (const g of groups) files.push({ name: `tessa-batch-${batchNo}-${g.project.prefix}.md`, md: await buildMarkdown(g, batchNo, exporter), group: g });
+  return files;
+}
+async function openExport() {
+  const selIds = Array.from(state.selection); if (!selIds.length) return;
+  const selected = state.cache.cards.filter(c => selIds.includes(c.id));
+  const fresh = selected.filter(c => c.status === 'new'); const skipped = selected.filter(c => c.status !== 'new');
+  const skippedHtml = skipped.length ? `<div class="callout warn skipped"><span><b style="color:var(--fg-1)">Skipped ${skipped.length} — export takes new cards only.</b> ${skipped.map(c => `<span class="idm">${esc(c.display_id)}</span> (${esc(stLabel(c.status).toLowerCase())})`).join(', ')}.</span></div>` : '';
+  if (!fresh.length) {
+    openLayer('modal', `<div class="modal-card sm"><div class="modal-head"><h4>Nothing to export</h4>${headBtn}</div><div class="modal-body">${skippedHtml}<div class="help">Cards that were already exported keep their batch. To send one again, set it back to New first.</div></div><div class="modal-foot"><button class="btn primary" data-close="1">OK</button></div></div>`);
+    return;
+  }
+  const ids = fresh.map(c => c.id);
+  const groups = exportPlan(ids); const nextNo = await store.nextBatchNo();
+  const exporter = state.me || (state.reviewer || '').split('@')[0];
+  const files = await buildFiles(groups, nextNo, exporter);
+  const preview = files.map(f => `<span class="fh">── ${esc(f.name)} ──</span>\n${esc(f.md)}`).join('\n\n');
+  let shotCount = 0; for (const g of groups) for (const c of g.cards) shotCount += state.cache.shotCounts[c.id] || 0;
+  const el = openLayer('modal', `<div class="modal-card">
+    <div class="modal-head"><h4>Export batch ${nextNo} · ${ids.length} card${ids.length === 1 ? '' : 's'}</h4>${headBtn}</div>
+    <div class="modal-body">
+      <div class="exp-sum">${groups.map(g => `<span class="grp"><span class="prefix">${esc(g.project.prefix)}</span>${esc(g.project.name)}<span class="idm">${g.cards.length}</span></span>`).join('')}<span class="grp">${ic('image')}${shotCount} screenshot${shotCount === 1 ? '' : 's'}</span></div>
+      ${skippedHtml}
+      <pre class="md" id="md-preview">${preview}</pre>
+      <div class="help">Exporting marks ${ids.length === 1 ? 'this card' : `these ${ids.length} cards`} <b>In progress</b> and stamps batch ${nextNo} on ${ids.length === 1 ? 'it' : 'them'}, so nothing goes out twice. When the agent reports back, open the batch and paste the report.</div>
+    </div>
+    <div class="modal-foot"><span class="left">One .md per project${shotCount ? ' + screenshots/' : ''}, zipped.</span><button class="btn" data-act="copy-md">${ic('copy')}Copy markdown</button><button class="btn primary" data-act="download-zip">${ic('download')}Download zip</button></div>
+  </div>`);
+  el._export = { files, groups, nextNo, ids, exporter };
+}
+/* Creates the batch first so the files carry the real batch number, then marks the cards. */
+async function commitBatch(x) {
+  const b = await store.createBatch({ project_id: x.groups.length === 1 ? x.groups[0].project.id : null, card_ids: x.ids, exported_by: x.exporter || state.reviewer });
+  if (b.no !== x.nextNo) { x.nextNo = b.no; x.files = await buildFiles(x.groups, b.no, x.exporter); }
+  return b;
+}
+async function finishExport(b, x) {
+  for (const id of x.ids) await store.updateCard(id, { status: 'in_progress', batch_id: b.id });
+  state.selection.clear(); closeLayer(); await refresh(); render();
+  toast(`${ic('check')}Batch ${b.no} exported · ${x.ids.length} card${x.ids.length === 1 ? '' : 's'} → In progress`);
+}
+async function copyMarkdown() {
+  const top = layerStack[layerStack.length - 1]; const x = top && top.el._export; if (!x) return;
+  const b = await commitBatch(x);
+  const text = x.files.map(f => f.md).join('\n\n\n');
+  try { await navigator.clipboard.writeText(text); } catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast('Markdown copied');
+  await finishExport(b, x);
+}
+function loadJSZip() {
+  return new Promise((res, rej) => {
+    if (window.JSZip) return res(window.JSZip);
+    const s = document.createElement('script'); s.src = 'vendor/jszip-3.10.1.min.js';
+    s.onload = () => res(window.JSZip); s.onerror = () => rej(new Error('jszip')); document.head.appendChild(s);
+  });
+}
+function dataUrlToBlob(u) { const [h, d] = u.split(','); const mime = h.slice(5).split(';')[0]; if (h.includes('base64')) { const bin = atob(d); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: mime }); } return new Blob([decodeURIComponent(d)], { type: mime }); }
+async function saveFile(filename, blob) {
+  try {
+    if (window.claude && typeof window.claude.use === 'function') {
+      const dl = await window.claude.use('downloads');
+      if (dl) { await dl.save({ filename, data: blob }); return 'saved'; }
+    }
+  } catch (e) { if (e && e.code === 'declined') return 'declined'; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); return 'saved';
+}
+async function downloadZip() {
+  const top = layerStack[layerStack.length - 1]; const x = top && top.el._export; if (!x) return;
+  const btn = $('[data-act="download-zip"]'); btn.disabled = true; btn.textContent = 'Zipping…';
+  let JSZip; try { JSZip = await loadJSZip(); } catch (e) { btn.disabled = false; btn.innerHTML = `${ic('download')}Download zip`; toast('Could not load the zip library — use Copy markdown'); return; }
+  const zip = new JSZip();
+  const b = await commitBatch(x);
+  for (const f of x.files) {
+    zip.file(f.name, f.md);
+    for (const c of f.group.cards) {
+      const shots = await store.getShots(c.id);
+      for (let i = 0; i < shots.length; i++) { try { zip.file(`screenshots/${c.display_id}-${i + 1}.${dataUrlExt(shots[i])}`, await shotBlob(shots[i])); } catch (e) { toast(`Could not fetch a screenshot for ${esc(c.display_id)}`); } }
+    }
+  }
+  const blob = await zip.generateAsync({ type: 'blob' });
+  await saveFile(`tessa-batch-${b.no}.zip`, blob);
+  btn.disabled = false; btn.innerHTML = `${ic('download')}Download zip`;
+  await finishExport(b, x);
+}
+
+/* ---------- Actions ---------- */
+const actions = {
+  view: el => { state.view = el.dataset.v; if (state.view !== 'review') state.selection.clear(); closeAll(); $$('.pop').forEach(p => p.remove()); render(); },
+  'proj-menu': () => toggleProjPop(),
+  'rf-project': el => { state.rf.project = el.value; state.selection.clear(); render(); },
+  'pick-project': el => { state.projectId = el.dataset.id; state.filter.status = 'all'; persistUi(); render(); },
+  filter: el => { state.filter.status = el.dataset.s; render(); },
+  rf: el => { state.rf[el.dataset.g] = el.dataset.v; render(); },
+  'new-card': () => { if (!state.me) { openEditMe(); toast('Add your name first — it goes on the card'); return; } openNewCard(); },
+  open: el => openCard(el.dataset.id),
+  'set-type': el => { draft.type = el.dataset.v; $$('#seg-type button').forEach(b => b.classList.toggle('on', b.dataset.v === draft.type)); $('#type-fields').innerHTML = typeFieldsHtml(draft.type, draft.editCard || {}); $('#f-where').placeholder = WHERE_PH[draft.type]; },
+  'edit-card': el => openEditCard(el.dataset.id),
+  'toggle-original': () => { const b = $('#orig-body'); b.hidden = !b.hidden; const btn = $('#orig-btn'); btn.innerHTML = btn.innerHTML.replace(b.hidden ? 'Hide' : 'Show', b.hidden ? 'Show' : 'Hide'); },
+  'set-pri': el => { draft.priority = el.dataset.v; $$('#seg-pri button').forEach(b => b.classList.toggle('on', b.dataset.v === draft.priority)); },
+  'rm-shot': (el, e) => { e.stopPropagation(); draft.shots.splice(Number(el.dataset.i), 1); renderDraftThumbs(); },
+  'submit-card': () => submitCard(),
+  lightbox: el => openLightbox(el.dataset.id, Number(el.dataset.i)),
+  signin: () => openSignin(),
+  'signin-next': () => signinNext(),
+  signout: () => signOut(),
+  'me-menu': () => toggleMeMenu(),
+  'help-menu': () => toggleHelpMenu(),
+  help: () => { $$('.pop').forEach(p => p.remove()); openHelp(); },
+  'edit-me': () => { $$('.pop').forEach(p => p.remove()); openEditMe(); },
+  'save-me': () => saveMe(),
+  'open-batch': el => { const id = el.dataset.id; if (el.tagName === 'A') { closeLayer(); setTimeout(() => openBatch(id), 210); } else openBatch(id); },
+  'rp-preview': el => previewReport(el.dataset.id),
+  'rp-apply': el => applyReport(el.dataset.id),
+  /* Filer replies send the card back to New so it re-enters the reviewer's queue with the answer attached. */
+  'send-reply': async el => { const t = $('#f-reply').value.trim(); if (!t) { $('#f-reply').focus(); return; } await store.updateCard(el.dataset.id, { filer_reply: t, status: 'new' }); closeLayer(); await refresh(); render(); toast('Reply sent to the reviewer'); },
+  verify: async el => { await store.updateCard(el.dataset.id, { status: 'verified' }); closeLayer(); await refresh(); render(); toast(`${ic('check')}Marked verified — thanks`); },
+  'still-broken': el => { const f = $('#still-fld'); f.hidden = false; el.hidden = true; $('#f-reply').focus(); },
+  'send-reopen': async el => { const t = $('#f-reply').value.trim(); if (!t) { $('#f-reply').focus(); return; } await store.updateCard(el.dataset.id, { filer_reply: t, status: 'new' }); closeLayer(); await refresh(); render(); toast('Sent back to the reviewer'); },
+  't-set-pri': el => { const body = el.closest('.drawer-body'); body.dataset.pri = el.dataset.v; $$('#t-pri button').forEach(b => b.classList.toggle('on', b.dataset.v === el.dataset.v)); },
+  'save-triage': async el => { const body = el.closest('.drawer-body'); await store.updateCard(el.dataset.id, { status: $('#t-status').value, type: $('#t-type').value, priority: body.dataset.pri, reviewer_note: $('#t-note').value.trim() }); closeLayer(); await refresh(); render(); toast('Saved'); },
+  'delete-card': async el => { const c = await store.getCard(el.dataset.id); if (!confirm(`Delete ${c.display_id}? This can't be undone.`)) return; await store.deleteCard(c.id); state.selection.delete(c.id); closeLayer(); await refresh(); render(); toast(`${esc(c.display_id)} deleted`); },
+  'toggle-sel': (el, e) => { e.stopPropagation(); const id = el.dataset.id; state.selection.has(id) ? state.selection.delete(id) : state.selection.add(id); render(); },
+  'select-visible': () => { const rows = $$('.trow[data-id]'); const ids = rows.map(r => r.dataset.id); if (ids.every(id => state.selection.has(id))) state.selection.clear(); else ids.forEach(id => state.selection.add(id)); render(); },
+  'clear-sel': () => { state.selection.clear(); render(); },
+  'row-status': async (el, e) => { e.stopPropagation(); await store.updateCard(el.dataset.id, { status: el.value }); await refresh(); render(); toast(`${esc((await store.getCard(el.dataset.id)).display_id)} → ${esc(stLabel(el.value))}`); },
+  'bulk-status': async el => { const s = el.value; if (!s) return; for (const id of state.selection) await store.updateCard(id, { status: s }); const n = state.selection.size; state.selection.clear(); await refresh(); render(); toast(`${n} card${n === 1 ? '' : 's'} → ${esc(stLabel(s))}`); },
+  export: () => openExport(),
+  'copy-md': () => copyMarkdown(),
+  'download-zip': () => downloadZip(),
+  'new-project': () => openProjectEditor(null),
+  'edit-project': el => openProjectEditor(el.dataset.id),
+  'save-project': el => saveProject(el.dataset.id || null),
+};
+document.addEventListener('click', e => {
+  const closeEl = e.target.closest('[data-close]'); if (closeEl) { e.preventDefault(); closeLayer(); return; }
+  const el = e.target.closest('[data-act]');
+  if (!el) { if (!e.target.closest('.pop') && !e.target.closest('.proj-btn') && !e.target.closest('.me-btn') && !e.target.closest('.help-btn')) $$('.pop').forEach(p => p.remove()); return; }
+  if (el.tagName === 'SELECT') return;
+  if (el.tagName === 'A') e.preventDefault();
+  const fn = actions[el.dataset.act]; if (fn) fn(el, e);
+});
+document.addEventListener('change', e => { const el = e.target.closest('select[data-act]'); if (el) { const fn = actions[el.dataset.act]; if (fn) fn(el, e); } });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (layerStack.length) closeLayer(); else $$('.pop').forEach(p => p.remove()); }
+  if (e.key === 'Enter' && e.target.matches('.trow[data-id]')) openCard(e.target.dataset.id);
+  if (e.key === 'Enter' && e.target.matches('#card-form input')) { e.preventDefault(); }
+});
+document.addEventListener('paste', e => {
+  if (!draft) return; const items = Array.from(e.clipboardData?.items || []).filter(i => i.type.startsWith('image/'));
+  if (items.length) { e.preventDefault(); addFiles(items.map(i => i.getAsFile())); }
+});
+
+/* ---------- Passphrase gate (live mode only) ---------- */
+function renderKeyGate(wrong) {
+  $('#app').innerHTML = `<header class="topbar"><a class="wordmark" href="#"><span>Tessa<span class="dot">.</span></span></a></header>
+    <main class="page" style="max-width:440px;padding-top:72px"><form id="key-form" class="triage" style="gap:14px" novalidate>
+      <div><div class="eyebrow">Team passphrase</div><div style="font-size:13px;color:var(--fg-2);margin-top:6px;line-height:1.5">Tessa is for the editing team. You only type this once on each device.</div></div>
+      <div class="fld ${wrong ? 'err' : ''}"><label for="k-in" class="sr">Passphrase</label><input type="password" id="k-in" placeholder="Passphrase" autofocus autocomplete="off"><div class="errmsg">That's not it — check with whoever gave you the link.</div></div>
+      <div style="display:flex;justify-content:flex-end"><button class="btn primary" type="submit" id="k-go">Continue</button></div>
+    </form></main>`;
+  $('#key-form').addEventListener('submit', async e => {
+    e.preventDefault(); const k = $('#k-in').value.trim(); if (!k) return;
+    $('#k-go').disabled = true; store.setKey(k);
+    try { await store.init(); if (await store.hasKey()) { location.reload(); return; } } catch (err) { toast(`Something went wrong: ${esc(err.message)}`, 6000); }
+    renderKeyGate(true);
+  });
+}
+
+/* ---------- Boot ---------- */
+window.addEventListener('unhandledrejection', e => { const m = (e.reason && e.reason.message) || String(e.reason); console.error(e.reason); toast(`Something went wrong: ${esc(m)}`, 6000); });
+(async function boot() {
+  if (DEMO) {
+    if (!store.seeded()) await store.seed();
+  } else {
+    state.reviewer = null;
+    try { await store.init(); if (!(await store.hasKey())) { renderKeyGate(false); return; } state.reviewer = await store.currentReviewer(); }
+    catch (e) { $('#app').innerHTML = `<div class="empty" style="padding-top:80px"><b>Tessa can't reach its database</b>${esc(e.message)}<br>Reload to try again.</div>`; return; }
+    store.sb.auth.onAuthStateChange(async (ev) => { if (ev === 'SIGNED_IN' && !state.reviewer && !layerStack.length) { const who = await store.currentReviewer(); if (who) { state.reviewer = who; state.view = 'review'; await refresh(); render(); toast('Signed in as reviewer'); } } });
+  }
+  await refresh(); render();
+})();
+</script>
+</body>
+</html>
