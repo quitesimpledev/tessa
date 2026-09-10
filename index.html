@@ -760,7 +760,7 @@ class SupabaseStore {
     const email = session.user.email.toLowerCase(); return (await this.isReviewer(email)) ? email : null;
   }
   async isReviewer(email) { const rows = await this.q(this.sb.from('reviewers').select('email').eq('email', email)); return rows.length > 0; }
-  async sendCode(email) { await this.q(this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })); }
+  async sendCode(email) { await this.q(this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: window.location.origin + window.location.pathname } })); }
   async verifyCode(email, token) { await this.q(this.sb.auth.verifyOtp({ email, token, type: 'email' })); return this.currentReviewer(); }
   async signOut() { await this.sb.auth.signOut(); }
 }
