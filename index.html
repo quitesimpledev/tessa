@@ -399,6 +399,10 @@ pre.md .fh { color: var(--accent-text); }
 .pop-proj { min-width: 300px; }
 .pop-search { display: block; width: calc(100% - 8px); margin: 2px 4px 6px; height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-1); color: var(--fg-1); font: inherit; font-size: 13px; }
 .pop-search:focus { outline: none; border-color: var(--accent); }
+.cardsearch { margin: 4px 0 8px; }
+.card-search { width: 100%; max-width: 340px; height: 34px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg-1); color: var(--fg-1); font: inherit; font-size: 13px; }
+.card-search:focus { outline: none; border-color: var(--accent); }
+.filters .card-search { max-width: 300px; }
 .pop-list { max-height: min(60vh, 440px); overflow-y: auto; }
 .filter-sel { height: 28px; padding: 0 28px 0 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-1); font: inherit; font-size: 12px; font-weight: 600; max-width: 320px; }
 .pop .hd { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-4); padding: 6px 10px 4px; }
@@ -823,7 +827,7 @@ const state = {
   projectId: lsGet('tessa.ui.project', null),
   me: lsGet('tessa.ui.me', ''),
   reviewer: lsGet('tessa.ui.reviewer', null),   // email or null
-  filter: { status: 'all' },
+  filter: { status: 'open' },
   rf: { project: 'all', status: 'open', type: 'all', pri: 'all' },
   selection: new Set(),
   cache: { projects: [], cards: [], shotCounts: {}, attCounts: {}, batches: [] },
@@ -891,10 +895,11 @@ function renderCards() {
   const all = state.cache.cards.filter(c => c.project_id === p.id);
   const counts = { all: all.length }; for (const s of STATUSES) counts[s.id] = all.filter(c => c.status === s.id).length;
   const open = all.filter(c => isOpen(c.status)).length;
+  counts.open = open;
   const f = state.filter.status;
-  let cards = f === 'all' ? all : all.filter(c => c.status === f);
+  let cards = f === 'open' ? all.filter(c => isOpen(c.status)) : f === 'all' ? all : all.filter(c => c.status === f);
   cards = cards.slice().sort((a, b) => b.created_at.localeCompare(a.created_at));
-  const chips = [{ id: 'all', label: 'All' }, ...STATUSES].map(s => `<button class="chip ${f === s.id ? 'on' : ''}" data-act="filter" data-s="${s.id}">${esc(s.label)}<span class="n">${counts[s.id]}</span></button>`).join('');
+  const chips = [{ id: 'open', label: 'Open' }, { id: 'all', label: 'All' }, ...STATUSES].map(s => `<button class="chip ${f === s.id ? 'on' : ''}" data-act="filter" data-s="${s.id}">${esc(s.label)}<span class="n">${counts[s.id]}</span></button>`).join('');
   return `
     <div class="page-head">
       <div>
@@ -904,6 +909,7 @@ function renderCards() {
       <div class="actions"><button class="btn primary" data-act="new-card">${ic('plus')}New card</button></div>
     </div>
     <div class="filters">${chips}</div>
+    <div class="cardsearch"><input class="card-search" type="search" placeholder="Search ${esc(p.prefix)} cards\u2026" autocomplete="off"></div>
     <div class="list">
       ${cards.length ? cards.map(rowHtml).join('') : `<div class="empty"><b>${f === 'all' ? `No cards yet for ${esc(p.name)}` : `Nothing ${esc(stLabel(f).toLowerCase())}`}</b>${f === 'all' ? 'File the first one — a title and where you saw it is enough.' : 'Try another filter.'}</div>`}
     </div>
@@ -913,7 +919,7 @@ function badge(status) { return `<span class="badge st-${status}">${status === '
 function pri(p) { return `<span class="pri pri-${p}">${p.toUpperCase()}</span>`; }
 function rowHtml(c) {
   const n = state.cache.shotCounts[c.id] || 0;
-  return `<button class="row" data-act="open" data-id="${c.id}">
+  return `<button class="row" data-act="open" data-id="${c.id}" data-search="${esc((c.display_id + ' ' + c.title + ' ' + c.where + ' ' + c.filer_name).toLowerCase())}">
     <div class="idline"><span class="idm">${esc(c.display_id)}</span>${badge(c.status)}</div>
     <div class="main"><div class="title">${esc(c.title)}</div><div class="sub"><span class="type">${esc(tyLabel(c.type))}</span><span>·</span><span>${esc(c.where)}</span></div></div>
     <div class="meta">
@@ -952,6 +958,7 @@ function renderReview() {
     <div class="filters"><span class="lbl">Status</span>${chip('status', 'open', 'Open')}${STATUSES.map(s => chip('status', s.id, s.label)).join('')}${chip('status', 'all', 'Everything')}</div>
     <div class="filters"><span class="lbl">Type</span>${chip('type', 'all', 'All')}${TYPES.map(t => chip('type', t.id, t.label)).join('')}
       <span class="gap"></span><span class="lbl">Priority</span>${chip('pri', 'all', 'All')}${PRIORITIES.map(p => chip('pri', p.id, p.label)).join('')}</div>
+    <div class="filters"><span class="lbl">Search</span><input class="card-search" type="search" placeholder="ID, title, where, filer\u2026" autocomplete="off"></div>
     <div class="table">
       <div class="trow thead"><span></span><span>ID</span><span>Card</span><span>Project</span><span>Type</span><span>Pri</span><span>Status</span><span>Filed</span></div>
       ${cards.length ? cards.map(trowHtml).join('') : `<div class="empty"><b>Nothing matches</b>Loosen a filter.</div>`}
@@ -966,7 +973,7 @@ function renderReview() {
 function trowHtml(c) {
   const p = proj(c.project_id) || {}; const on = state.selection.has(c.id);
   const stSel = `<select class="badge st-sel st-${c.status}" data-act="row-status" data-id="${c.id}" aria-label="Status">${STATUSES.map(s => `<option value="${s.id}" ${s.id === c.status ? 'selected' : ''}>${esc(s.label)}</option>`).join('')}</select>`;
-  return `<div class="trow ${on ? 'sel' : ''}" data-act="open" data-id="${c.id}" role="button" tabindex="0">
+  return `<div class="trow ${on ? 'sel' : ''}" data-act="open" data-id="${c.id}" role="button" tabindex="0" data-search="${esc((c.display_id + ' ' + c.title + ' ' + c.where + ' ' + c.filer_name).toLowerCase())}">
     <span class="cb ${on ? 'on' : ''}" data-act="toggle-sel" data-id="${c.id}" role="checkbox" aria-checked="${on}">${on ? ic('check') : ''}</span>
     <span class="idm">${esc(c.display_id)}</span>
     <div class="t"><div class="title">${esc(c.title)}</div><div class="where">${esc(c.where)}</div></div>
@@ -1266,7 +1273,7 @@ async function submitCard() {
   }
   state.me = v('filer_name'); persistUi();
   const c = await store.createCard({ project_id: projectId, filer_name: state.me, ...fields }, draft.shots, draft.files);
-  if (projectId !== state.projectId) { state.projectId = projectId; state.filter.status = 'all'; persistUi(); }
+  if (projectId !== state.projectId) { state.projectId = projectId; state.filter.status = 'open'; persistUi(); }
   closeLayer(); await refresh(); render();
   toast(`${ic('check')}<span class="idm">${esc(c.display_id)}</span> filed`);
 }
@@ -1557,7 +1564,7 @@ const actions = {
   view: el => { state.view = el.dataset.v; if (state.view !== 'review') state.selection.clear(); closeAll(); $$('.pop').forEach(p => p.remove()); render(); },
   'proj-menu': () => toggleProjPop(),
   'rf-project': el => { state.rf.project = el.value; state.selection.clear(); render(); },
-  'pick-project': el => { state.projectId = el.dataset.id; state.filter.status = 'all'; persistUi(); render(); },
+  'pick-project': el => { state.projectId = el.dataset.id; state.filter.status = 'open'; persistUi(); render(); },
   filter: el => { state.filter.status = el.dataset.s; render(); },
   rf: el => { state.rf[el.dataset.g] = el.dataset.v; render(); },
   'new-card': () => { if (!state.me) { openEditMe(); toast('Add your name first — it goes on the card'); return; } openNewCard(); },
@@ -1602,6 +1609,12 @@ const actions = {
   'edit-project': el => openProjectEditor(el.dataset.id),
   'save-project': el => saveProject(el.dataset.id || null),
 };
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (!t || !t.classList || !t.classList.contains('card-search')) return;
+  const q = t.value.trim().toLowerCase();
+  document.querySelectorAll('.list .row[data-search], .table .trow[data-search]').forEach(el => { el.hidden = !!q && !el.dataset.search.includes(q); });
+});
 document.addEventListener('click', e => {
   const closeEl = e.target.closest('[data-close]'); if (closeEl) { e.preventDefault(); closeLayer(); return; }
   const el = e.target.closest('[data-act]');
