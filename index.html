@@ -438,10 +438,11 @@ pre.md .fh { color: var(--accent-text); }
 .pop-proj { min-width: 300px; }
 .pop-search { display: block; width: calc(100% - 8px); margin: 2px 4px 6px; height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-1); color: var(--fg-1); font: inherit; font-size: 13px; }
 .pop-search:focus { outline: none; border-color: var(--accent); }
-.cardsearch { margin: 4px 0 8px; }
+.toolbar { display: flex; gap: 8px; align-items: center; margin: 0 0 12px; }
+.toolbar .card-search { flex: 1; max-width: none; }
+.toolbar .filter-sel { height: 34px; border-radius: 7px; flex-shrink: 0; }
 .card-search { width: 100%; max-width: 340px; height: 34px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg-1); color: var(--fg-1); font: inherit; font-size: 13px; }
 .card-search:focus { outline: none; border-color: var(--accent); }
-.filters .card-search { max-width: 300px; }
 .pop-list { max-height: min(60vh, 440px); overflow-y: auto; }
 .filter-sel { height: 28px; padding: 0 28px 0 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-1); font: inherit; font-size: 12px; font-weight: 600; max-width: 320px; }
 .pop .hd { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-4); padding: 6px 10px 4px; }
@@ -931,8 +932,10 @@ function renderLoading() {
 /* Search boxes are plain DOM filters; the query lives in state so a re-render (any click) keeps it. */
 const searchKey = () => state.view === 'review' ? 'review' : (state.projectId ? 'cards' : 'chooser');
 function applySearch(q) {
-  q = (q || '').trim().toLowerCase();
-  document.querySelectorAll('#main [data-search]').forEach(el => { el.hidden = !!q && !el.dataset.search.includes(q); });
+  const words = (q || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+  let shown = 0;
+  document.querySelectorAll('#main [data-search]').forEach(el => { const t = el.dataset.search; el.hidden = words.some(w => !t.includes(w)); if (!el.hidden) shown++; });
+  const n = $('#shown-n'); if (n) n.textContent = shown;
 }
 function restoreSearch() {
   const inp = $('#main .card-search'); if (!inp) return;
@@ -1012,7 +1015,7 @@ function renderCards() {
   const f = state.filter.status;
   let cards = f === 'open' ? all.filter(c => isOpen(c.status)) : f === 'all' ? all : all.filter(c => c.status === f);
   cards = cards.slice().sort((a, b) => b.created_at.localeCompare(a.created_at));
-  const chips = [{ id: 'open', label: 'Open' }, { id: 'all', label: 'All' }, ...STATUSES].map(s => `<button class="chip ${f === s.id ? 'on' : ''}" data-act="filter" data-s="${s.id}">${esc(s.label)}<span class="n">${counts[s.id]}</span></button>`).join('');
+  const opts = [{ id: 'open', label: 'Open' }, ...STATUSES, { id: 'all', label: 'Everything' }].map(s => `<option value="${s.id}" ${f === s.id ? 'selected' : ''}>${esc(s.label)} (${counts[s.id]})</option>`).join('');
   return `
     <div class="page-head">
       <div>
@@ -1022,8 +1025,7 @@ function renderCards() {
       <div class="actions"><button class="btn primary" data-act="new-card">${ic('plus')}New card</button></div>
     </div>
     ${attentionHtml()}
-    <div class="filters">${chips}</div>
-    <div class="cardsearch"><input class="card-search" type="search" placeholder="Search ${esc(p.prefix)} cards\u2026" autocomplete="off"></div>
+    <div class="toolbar"><input class="card-search" type="search" placeholder="Search — title, ID, name, bug, p1\u2026" autocomplete="off"><select class="filter-sel" data-act="filter" aria-label="Status">${opts}</select></div>
     <div class="list">
       ${cards.length ? cards.map(rowHtml).join('') : !all.length ? `<div class="empty"><b>No cards yet for ${esc(p.name)}</b>File the first one — a title and where you saw it is enough.</div>` : `<div class="empty"><b>Nothing ${f === 'all' ? 'here' : esc(stLabel(f).toLowerCase())}</b>Try another filter.</div>`}
     </div>
@@ -1031,9 +1033,15 @@ function renderCards() {
 }
 function badge(status) { return `<span class="badge st-${status}">${status === 'verified' ? '<span class="chk">✓</span>' : ''}${esc(stLabel(status))}</span>`; }
 function pri(p) { return `<span class="pri pri-${p}">${p.toUpperCase()}</span>`; }
+/* What the search box matches: id, title, where, filer, plus the words a reviewer
+   would type to narrow — type (bug), priority (p1), status (new, "needs info"), prefix. */
+function searchText(c) {
+  const p = proj(c.project_id) || {};
+  return (c.display_id + ' ' + c.title + ' ' + c.where + ' ' + c.filer_name + ' ' + c.type + ' ' + c.priority + ' ' + stLabel(c.status) + ' ' + c.status.replace('_', ' ') + ' ' + (p.prefix || '') + ' ' + (p.name || '')).toLowerCase();
+}
 function rowHtml(c) {
   const n = state.cache.shotCounts[c.id] || 0;
-  return `<button class="row" data-act="open" data-id="${c.id}" data-search="${esc((c.display_id + ' ' + c.title + ' ' + c.where + ' ' + c.filer_name).toLowerCase())}">
+  return `<button class="row" data-act="open" data-id="${c.id}" data-search="${esc(searchText(c))}">
     <div class="idline"><span class="idm">${esc(c.display_id)}</span>${badge(c.status)}</div>
     <div class="main"><div class="title">${esc(c.title)}</div><div class="sub"><span class="type">${esc(tyLabel(c.type))}</span><span>·</span><span>${esc(c.where)}</span></div></div>
     <div class="meta">
@@ -1051,8 +1059,6 @@ function renderReview() {
   let cards = state.cache.cards.slice();
   if (rf.project !== 'all') cards = cards.filter(c => c.project_id === rf.project);
   if (rf.status === 'open') cards = cards.filter(c => isOpen(c.status)); else if (rf.status !== 'all') cards = cards.filter(c => c.status === rf.status);
-  if (rf.type !== 'all') cards = cards.filter(c => c.type === rf.type);
-  if (rf.pri !== 'all') cards = cards.filter(c => c.priority === rf.pri);
   const order = { p1: 0, p2: 1, p3: 2 };
   cards.sort((a, b) => (order[a.priority] - order[b.priority]) || b.created_at.localeCompare(a.created_at));
   const chip = (grp, id, label, n) => `<button class="chip ${rf[grp] === id ? 'on' : ''}" data-act="rf" data-g="${grp}" data-v="${id}">${esc(label)}${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
@@ -1061,18 +1067,14 @@ function renderReview() {
   const allVisibleSel = cards.length && cards.every(c => sel.has(c.id));
   return `
     <div class="page-head">
-      <div><h1>Review</h1><div class="sub">${cards.length} shown · ${allOpen.length} open across ${state.cache.projects.filter(p => p.active).length} projects</div></div>
+      <div><h1>Review</h1><div class="sub"><span id="shown-n">${cards.length}</span> shown · ${allOpen.length} open across ${state.cache.projects.filter(p => p.active).length} projects</div></div>
       <div class="actions"><button class="btn" data-act="select-visible">${allVisibleSel ? 'Clear selection' : 'Select all shown'}</button></div>
     </div>
-    ${(() => { const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es')); const cnt = p => openCount(p.id);
-      if (ps.length <= 8) return `<div class="filters"><span class="lbl">Project</span>${chip('project', 'all', 'All')}${ps.map(p => chip('project', p.id, p.name, cnt(p))).join('')}</div>`;
+    <div class="filters">${(() => { const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es')); const cnt = p => openCount(p.id);
       const withOpen = ps.filter(p => cnt(p) > 0), rest = ps.filter(p => cnt(p) === 0);
       const opt = p => `<option value="${p.id}" ${rf.project === p.id ? 'selected' : ''}>${esc(p.name)}${cnt(p) ? ` (${cnt(p)} open)` : ''}</option>`;
-      return `<div class="filters"><span class="lbl">Project</span><select class="filter-sel" data-act="rf-project"><option value="all" ${rf.project === 'all' ? 'selected' : ''}>All projects · ${allOpen.length} open</option>${withOpen.length ? `<optgroup label="With open cards">${withOpen.map(opt).join('')}</optgroup>` : ''}${rest.length ? `<optgroup label="Nothing open">${rest.map(opt).join('')}</optgroup>` : ''}</select></div>`; })()}
-    <div class="filters"><span class="lbl">Status</span>${chip('status', 'open', 'Open')}${STATUSES.map(s => chip('status', s.id, s.label)).join('')}${chip('status', 'all', 'Everything')}</div>
-    <div class="filters"><span class="lbl">Type</span>${chip('type', 'all', 'All')}${TYPES.map(t => chip('type', t.id, t.label)).join('')}
-      <span class="gap"></span><span class="lbl">Priority</span>${chip('pri', 'all', 'All')}${PRIORITIES.map(p => chip('pri', p.id, p.label)).join('')}</div>
-    <div class="filters"><span class="lbl">Search</span><input class="card-search" type="search" placeholder="ID, title, where, filer\u2026" autocomplete="off"></div>
+      return `<select class="filter-sel" data-act="rf-project" aria-label="Project"><option value="all" ${rf.project === 'all' ? 'selected' : ''}>All projects · ${allOpen.length} open</option>${withOpen.length ? `<optgroup label="With open cards">${withOpen.map(opt).join('')}</optgroup>` : ''}${rest.length ? `<optgroup label="Nothing open">${rest.map(opt).join('')}</optgroup>` : ''}</select>`; })()}<span class="gap"></span>${chip('status', 'open', 'Open')}${STATUSES.map(s => chip('status', s.id, s.label)).join('')}${chip('status', 'all', 'Everything')}</div>
+    <div class="toolbar"><input class="card-search" type="search" placeholder="Search — or narrow: p1, bug, marta, TRV\u2026" autocomplete="off"></div>
     <div class="table">
       <div class="trow thead"><span></span><span>ID</span><span>Card</span><span>App</span><span>Pri</span><span>Status</span><span>Filed</span></div>
       ${cards.length ? cards.map(trowHtml).join('') : `<div class="empty"><b>Nothing matches</b>Loosen a filter.</div>`}
@@ -1087,7 +1089,7 @@ function renderReview() {
 function trowHtml(c) {
   const p = proj(c.project_id) || {}; const on = state.selection.has(c.id);
   const stSel = `<select class="badge st-sel st-${c.status}" data-act="row-status" data-id="${c.id}" aria-label="Status">${STATUSES.map(s => `<option value="${s.id}" ${s.id === c.status ? 'selected' : ''}>${esc(s.label)}</option>`).join('')}</select>`;
-  return `<div class="trow ${on ? 'sel' : ''}" data-act="open" data-id="${c.id}" role="button" tabindex="0" data-search="${esc((c.display_id + ' ' + c.title + ' ' + c.where + ' ' + c.filer_name).toLowerCase())}">
+  return `<div class="trow ${on ? 'sel' : ''}" data-act="open" data-id="${c.id}" role="button" tabindex="0" data-search="${esc(searchText(c))}">
     <span class="cb ${on ? 'on' : ''}" data-act="toggle-sel" data-id="${c.id}" role="checkbox" aria-checked="${on}">${on ? ic('check') : ''}</span>
     <span class="idm">${esc(c.display_id)}</span>
     <div class="t"><div class="title">${esc(c.title)}</div><div class="where"><span class="type">${esc(tyLabel(c.type))}</span><span>·</span><span style="overflow:hidden;text-overflow:ellipsis">${esc(c.where)}</span></div></div>
@@ -1704,7 +1706,7 @@ const actions = {
   'proj-menu': () => toggleProjPop(),
   'rf-project': el => { state.rf.project = el.value; state.selection.clear(); render(); },
   'pick-project': async el => { state.projectId = el.dataset.id; state.filter.status = 'open'; state.q.cards = ''; persistUi(); $$('.pop').forEach(p => p.remove()); await refresh(); render(); },
-  filter: el => { state.filter.status = el.dataset.s; render(); },
+  filter: el => { state.filter.status = el.value; render(); },
   rf: el => { state.rf[el.dataset.g] = el.dataset.v; render(); },
   'new-card': () => { if (!state.me) { openEditMe(openNewCard); return; } openNewCard(); },
   open: el => openCard(el.dataset.id),
