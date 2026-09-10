@@ -293,6 +293,9 @@ svg.i.lg { width: 18px; height: 18px; }
 .chooser .item:last-child { border-bottom: 0; }
 .chooser .item:hover { background: var(--bg-3); }
 .chooser .item .n { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+.chooser .ch-hd { margin: 14px 0 6px; }
+.chooser .ch-all { margin-top: 14px; }
+.chooser .list { max-height: 60vh; overflow-y: auto; }
 
 /* ---------- Loading ---------- */
 .loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 96px 24px; color: var(--fg-3); font-size: 13px; }
@@ -315,7 +318,7 @@ svg.i.lg { width: 18px; height: 18px; }
 .fld > label .opt { font-weight: 400; color: var(--fg-4); }
 #type-fields { display: flex; flex-direction: column; gap: 16px; }
 #type-fields:empty { display: none; }
-.fld input[type=text], .fld input[type=email], .fld textarea, .fld select {
+.fld input[type=text], .fld input[type=email], .fld input[type=password], .fld textarea, .fld select {
   background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; height: 34px;
   color: var(--fg-1); width: 100%; transition: border-color .12s, box-shadow .12s;
 }
@@ -415,7 +418,6 @@ pre.md { margin: 0; background: var(--bg); border: 1px solid var(--border); bord
 pre.md .fh { color: var(--accent-text); }
 .exp-sum { display: flex; flex-wrap: wrap; gap: 8px; }
 .exp-sum .grp { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 6px; border-radius: 6px; background: var(--bg-3); border: 1px solid var(--border); font-size: 12px; color: var(--fg-1); }
-.code-in { font-family: var(--font-mono); font-size: 22px; letter-spacing: .4em; text-align: center; height: 48px !important; }
 
 /* Lightbox */
 .lightbox { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 24px; }
@@ -483,7 +485,7 @@ pre.md .fh { color: var(--accent-text); }
   .row .stcol { display: none; }
   .attn .arow { grid-template-columns: minmax(0,1fr) auto; }
   .attn .arow > .idm { display: none; }
-  .fld input[type=text], .fld input[type=email], .fld textarea, .fld select { font-size: 16px; }
+  .fld input[type=text], .fld input[type=email], .fld input[type=password], .fld textarea, .fld select { font-size: 16px; }
   .pill-btn .long { display: none; }
   .prow { grid-template-columns: 48px minmax(0,1fr) 64px; }
   .brow { grid-template-columns: 64px minmax(0,1fr) auto; padding: 12px; gap: 10px; }
@@ -876,8 +878,11 @@ class SupabaseStore {
     const email = session.user.email.toLowerCase(); return (await this.isReviewer(email)) ? email : null;
   }
   async isReviewer(email) { const rows = await this.q(this.sb.from('reviewers').select('email').eq('email', email)); return rows.length > 0; }
-  async sendCode(email) { await this.q(this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: window.location.origin + window.location.pathname } })); }
-  async verifyCode(email, token) { await this.q(this.sb.auth.verifyOtp({ email, token, type: 'email' })); return this.currentReviewer(); }
+  /* Email + password. Magic links were dropped: the free tier's email quota is a few
+     messages an hour, which is one lockout away with two reviewers on new devices. */
+  async signInPassword(email, password) { await this.q(this.sb.auth.signInWithPassword({ email, password })); return this.currentReviewer(); }
+  async requestReset(email) { await this.q(this.sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname })); }
+  async setPassword(password) { await this.q(this.sb.auth.updateUser({ password })); }
   async signOut() { await this.sb.auth.signOut(); }
 }
 const DEMO = !(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
@@ -933,6 +938,8 @@ function renderLoading() {
 const searchKey = () => state.view === 'review' ? 'review' : (state.projectId ? 'cards' : 'chooser');
 function applySearch(q) {
   const words = (q || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const secs = $('#chooser-sections'), all = $('#chooser-all');
+  if (secs && all && !state.chooserAll) { secs.hidden = words.length > 0; all.hidden = !words.length; }
   let shown = 0;
   document.querySelectorAll('#main [data-search]').forEach(el => { const t = el.dataset.search; el.hidden = words.some(w => !t.includes(w)); if (!el.hidden) shown++; });
   const n = $('#shown-n'); if (n) n.textContent = shown;
@@ -977,14 +984,27 @@ function openHelp() {
 }
 
 /* ---------- Cards (filer view) ---------- */
+/* First visit / no project. Not a wall of 37 names: a search box, the apps this device
+   used recently, the apps with open cards, and "show all" for the rest. Typing searches everything. */
+function chooserItem(p) { const n = openCount(p.id); return `<button class="item" data-act="pick-project" data-id="${p.id}" data-search="${esc((p.name + ' ' + p.prefix).toLowerCase())}"><span class="prefix">${esc(p.prefix)}</span>${esc(p.name)}<span class="n">${n ? n + ' open' : ''}</span></button>`; }
 function renderChooser() {
   const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es'));
   if (!ps.length) return `<div class="empty"><b>No projects yet</b>A reviewer needs to add one first.</div>`;
+  const recentIds = lsGet('tessa.ui.recent', []);
+  const recent = recentIds.map(id => ps.find(p => p.id === id)).filter(Boolean);
+  const withOpen = ps.filter(p => !recent.includes(p) && openCount(p.id) > 0).sort((a, b) => openCount(b.id) - openCount(a.id)).slice(0, 6);
+  const sec = (title, items) => items.length ? `<div class="eyebrow ch-hd">${title}</div><div class="list">${items.map(chooserItem).join('')}</div>` : '';
+  const shown = recent.length + withOpen.length;
   return `<div class="chooser">
     <h1>Which app are you looking at?</h1>
-    <div class="lead">Pick the project your card is about. Tessa remembers it on this device — change it any time from the title.</div>
-    <input class="card-search" type="search" placeholder="Type to find…" autocomplete="off" autofocus>
-    <div class="list">${ps.map(p => `<button class="item" data-act="pick-project" data-id="${p.id}" data-search="${esc((p.name + ' ' + p.prefix).toLowerCase())}"><span class="prefix">${esc(p.prefix)}</span>${esc(p.name)}<span class="n">${openCount(p.id)} open</span></button>`).join('')}</div>
+    <div class="lead">Tessa remembers your pick on this device; change it any time from the title.</div>
+    <input class="card-search" type="search" placeholder="Type an app name…" autocomplete="off" autofocus>
+    <div id="chooser-sections" ${state.chooserAll ? 'hidden' : ''}>
+      ${sec('Recent on this device', recent)}
+      ${sec(recent.length ? 'Also with open cards' : 'With open cards', withOpen)}
+      ${shown < ps.length ? `<button class="btn ghost sm ch-all" data-act="chooser-all">${ic('chev')}${shown ? `Show all ${ps.length} apps` : `All ${ps.length} apps`}</button>` : ''}
+    </div>
+    <div id="chooser-all" ${state.chooserAll ? '' : 'hidden'}><div class="eyebrow ch-hd">All apps</div><div class="list">${ps.map(chooserItem).join('')}</div></div>
   </div>`;
 }
 /* Cards waiting on a filer — Needs info (answer the reviewer) and Implemented
@@ -1471,42 +1491,53 @@ function openSignin() {
   const el = openLayer('modal', `<div class="modal-card sm">
     <div class="modal-head"><h4>Reviewer sign in</h4>${headBtn}</div>
     <form class="modal-body" id="signin-form">
-      <div class="fld" id="email-fld"><label for="s-email">Email</label><input type="email" id="s-email" placeholder="you@example.com" autofocus autocomplete="email"><div class="help">We'll email you a sign-in link. Only addresses on the reviewer list get in.</div><div class="errmsg">That doesn't look like an email address.</div></div>
-      <div class="fld" id="code-fld" hidden><label for="s-code">Code</label><input type="text" id="s-code" class="code-in" inputmode="numeric" maxlength="6" placeholder="······" autocomplete="one-time-code"><div class="help">${DEMO ? 'Demo mode — any six digits work.' : 'From the email you just got. If the email has a link instead, clicking it also signs you in.'}</div><div class="errmsg">Six digits.</div></div>
+      <div class="fld" id="email-fld"><label for="s-email">Email</label><input type="email" id="s-email" placeholder="you@example.com" autofocus autocomplete="username"><div class="errmsg">That doesn't look like an email address.</div></div>
+      <div class="fld" id="pw-fld"><label for="s-pw">Password</label><input type="password" id="s-pw" autocomplete="current-password"><div class="help">${DEMO ? 'Demo mode — any password works.' : 'Only addresses on the reviewer list get in. Stays signed in on this device.'}</div><div class="errmsg">Enter your password.</div></div>
+      <button type="submit" class="sr">Sign in</button>
     </form>
-    <div class="modal-foot"><span class="left" id="s-hint"></span><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="signin-next" id="s-next">${ic('mail')}Send link</button></div>
+    <div class="modal-foot"><span class="left" id="s-hint">${DEMO ? '' : '<a href="#" data-act="forgot-pw">Forgot password?</a>'}</span><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="signin-next" id="s-next">${ic('user')}Sign in</button></div>
   </div>`);
   $('#signin-form', el).addEventListener('submit', e => { e.preventDefault(); signinNext(); });
 }
 async function signinNext() {
-  const emailIn = $('#s-email'); const email = emailIn.value.trim().toLowerCase(); const codeFld = $('#code-fld'); const next = $('#s-next');
-  if (codeFld.hidden) {
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $('#email-fld').classList.add('err'); return; }
-    $('#email-fld').classList.remove('err');
-    if (!DEMO) {
-      next.disabled = true; next.textContent = 'Sending…';
-      try { await store.sendCode(email); } catch (e) { next.disabled = false; next.innerHTML = `${ic('mail')}Send link`; $('#s-hint').textContent = 'Could not send: ' + e.message; return; }
-      next.disabled = false;
-      // Live: the default Supabase email carries a sign-in LINK, not a code. Clicking it
-      // signs the reviewer in via onAuthStateChange, so we don't collect a code here.
-      emailIn.readOnly = true;
-      next.innerHTML = `${ic('check')}Link sent`; next.disabled = true;
-      $('#s-hint').textContent = `Sign-in link sent to ${email}. Open it on this device \u2014 it signs you in here.`;
-      return;
-    }
-    // DEMO only: reveal the code field (no real email is sent).
-    codeFld.hidden = false; $('#s-code').focus(); next.innerHTML = `${ic('check')}Sign in`; $('#s-hint').textContent = `Code sent to ${email}`; emailIn.readOnly = true; return;
-  }
-  const code = $('#s-code').value.trim();
-  if (!/^\d{6}$/.test(code)) { codeFld.classList.add('err'); return; }
-  codeFld.classList.remove('err');
+  const email = $('#s-email').value.trim().toLowerCase(); const pw = $('#s-pw').value; const next = $('#s-next'); const hint = $('#s-hint');
+  const okEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+  $('#email-fld').classList.toggle('err', !okEmail); $('#pw-fld').classList.toggle('err', !pw);
+  if (!okEmail || !pw) return;
   if (DEMO) { finishSignin(email); return; }
-  next.disabled = true; next.textContent = 'Checking…';
+  next.disabled = true; next.textContent = 'Signing in…';
   try {
-    const who = await store.verifyCode(email, code);
-    if (!who) { await store.signOut(); $('#s-hint').textContent = 'That address isn\'t on the reviewer list.'; next.disabled = false; next.innerHTML = `${ic('check')}Sign in`; return; }
+    const who = await store.signInPassword(email, pw);
+    if (!who) { await store.signOut(); hint.textContent = "That address isn't on the reviewer list."; next.disabled = false; next.innerHTML = `${ic('user')}Sign in`; return; }
     finishSignin(who);
-  } catch (e) { $('#s-hint').textContent = e.message; next.disabled = false; next.innerHTML = `${ic('check')}Sign in`; }
+  } catch (e) { hint.textContent = /invalid/i.test(e.message) ? 'Wrong email or password.' : e.message; next.disabled = false; next.innerHTML = `${ic('user')}Sign in`; }
+}
+/* Forgot password: one email (rate-limited), the link comes back here as a PASSWORD_RECOVERY event. */
+async function forgotPassword() {
+  const email = $('#s-email').value.trim().toLowerCase(); const hint = $('#s-hint');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $('#email-fld').classList.add('err'); return; }
+  hint.textContent = 'Sending…';
+  try { await store.requestReset(email); hint.textContent = `Reset link sent to ${email}. Open it on this device.`; } catch (e) { hint.textContent = 'Could not send: ' + e.message; }
+}
+function openSetPassword() {
+  closeAll();
+  const el = openLayer('modal', `<div class="modal-card sm">
+    <div class="modal-head"><h4>Set a new password</h4>${headBtn}</div>
+    <form class="modal-body" id="setpw-form">
+      <div class="fld" id="np-fld"><label for="np-1">New password</label><input type="password" id="np-1" autofocus autocomplete="new-password"><div class="help">At least 8 characters.</div><div class="errmsg">At least 8 characters, and both fields the same.</div></div>
+      <div class="fld"><label for="np-2">Again</label><input type="password" id="np-2" autocomplete="new-password"></div>
+      <button type="submit" class="sr">Save</button>
+    </form>
+    <div class="modal-foot"><span class="left" id="np-hint"></span><button class="btn primary" data-act="setpw-save">Save password</button></div>
+  </div>`);
+  $('#setpw-form', el).addEventListener('submit', e => { e.preventDefault(); savePassword(); });
+}
+async function savePassword() {
+  const a = $('#np-1').value, b = $('#np-2').value;
+  if (a.length < 8 || a !== b) { $('#np-fld').classList.add('err'); return; }
+  $('#np-fld').classList.remove('err');
+  try { await store.setPassword(a); closeLayer(); toast(`${ic('check')}Password saved`); const who = await store.currentReviewer(); if (who && !state.reviewer) finishSignin(who); }
+  catch (e) { $('#np-hint').textContent = e.message; }
 }
 async function finishSignin(email) {
   state.reviewer = email; state.view = 'review'; persistUi(); closeLayer(); await refresh(); render(); toast('Signed in as reviewer');
@@ -1705,7 +1736,10 @@ const actions = {
   view: el => { state.view = el.dataset.v; if (state.view !== 'review') state.selection.clear(); closeAll(); $$('.pop').forEach(p => p.remove()); render(); },
   'proj-menu': () => toggleProjPop(),
   'rf-project': el => { state.rf.project = el.value; state.selection.clear(); render(); },
-  'pick-project': async el => { state.projectId = el.dataset.id; state.filter.status = 'open'; state.q.cards = ''; persistUi(); $$('.pop').forEach(p => p.remove()); await refresh(); render(); },
+  'pick-project': async el => { state.projectId = el.dataset.id; state.filter.status = 'open'; state.q.cards = ''; state.chooserAll = false; persistUi();
+    lsSet('tessa.ui.recent', [state.projectId, ...lsGet('tessa.ui.recent', []).filter(id => id !== state.projectId)].slice(0, 4));
+    $$('.pop').forEach(p => p.remove()); await refresh(); render(); },
+  'chooser-all': () => { state.chooserAll = true; render(); const i = $('#main .card-search'); if (i) i.focus(); },
   filter: el => { state.filter.status = el.value; render(); },
   rf: el => { state.rf[el.dataset.g] = el.dataset.v; render(); },
   'new-card': () => { if (!state.me) { openEditMe(openNewCard); return; } openNewCard(); },
@@ -1720,6 +1754,8 @@ const actions = {
   lightbox: el => openLightbox(el.dataset.id, Number(el.dataset.i)),
   signin: () => openSignin(),
   'signin-next': () => signinNext(),
+  'forgot-pw': () => forgotPassword(),
+  'setpw-save': () => savePassword(),
   signout: () => signOut(),
   'me-menu': () => toggleMeMenu(),
   'help-menu': () => toggleHelpMenu(),
@@ -1800,7 +1836,10 @@ window.addEventListener('unhandledrejection', e => { const m = (e.reason && e.re
     state.reviewer = null;
     try { await store.init(); if (!(await store.hasKey())) { renderKeyGate(false); return; } state.reviewer = await store.currentReviewer(); }
     catch (e) { $('#app').innerHTML = `<div class="empty" style="padding-top:80px"><b>Tessa can't reach its database</b>${esc(e.message)}<br>Reload to try again.</div>`; return; }
-    store.sb.auth.onAuthStateChange(async (ev) => { if (ev === 'SIGNED_IN' && !state.reviewer && !layerStack.length) { const who = await store.currentReviewer(); if (who) { state.reviewer = who; state.view = 'review'; await refresh(); render(); toast('Signed in as reviewer'); } } });
+    store.sb.auth.onAuthStateChange(async (ev) => {
+      if (ev === 'PASSWORD_RECOVERY') { openSetPassword(); return; }
+      if (ev === 'SIGNED_IN' && !state.reviewer && !layerStack.length) { const who = await store.currentReviewer(); if (who) { state.reviewer = who; state.view = 'review'; await refresh(); render(); toast('Signed in as reviewer'); } }
+    });
   }
   await refresh(); render();
 })();

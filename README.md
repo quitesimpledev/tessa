@@ -18,7 +18,7 @@ Not here on purpose: `seed.sql` (the team passphrase, reviewer list and project 
 1. Sign up at supabase.com (GitHub login works). New project: name `tessa`, region West EU, any database password (you never type it again).
 2. SQL Editor → New query → paste all of `schema.sql` → Run. Then a second query with `seed.sql`, after setting the passphrase, reviewer email and project list in it.
 3. Authentication → URL Configuration: set **Site URL** to the GitHub Pages URL from step 2 once you have it (`https://<username>.github.io/tessa/`) and add `https://<username>.github.io/tessa/**` under **Redirect URLs**. Supabase treats the Site URL as origin-only, so without the redirect entry the sign-in link lands on the domain root (a 404 on GitHub Pages).
-4. Reviewer sign-in is a magic link. The free tier doesn't let you edit the email template to carry a 6-digit code instead (that needs custom SMTP); the page is written for the link.
+4. Reviewer sign-in is email + password. Create each reviewer under Authentication → Users → Add user → *Create new user* (email, password, **Auto Confirm User** on); the email must also be in the `reviewers` table. Turn **Allow new users to sign up** off under Authentication → Sign In / Providers so nobody else can create an account. "Forgot password?" sends one email (the built-in mailer is limited to a few per hour) and the link returns to the page to set a new one.
 5. Project Settings → API: copy **Project URL** and the **anon public** key into `CONFIG` at the top of `index.html`.
 
 Supabase free projects pause after about a week without traffic. The `keepalive` workflow in this repo pings the database once a day from GitHub Actions so that doesn't happen; it starts working as soon as the repo is on GitHub with `CONFIG` filled in. GitHub switches scheduled workflows off after 60 days without a commit (it emails first) — re-enable it from the Actions tab.
@@ -35,7 +35,7 @@ Updating the app afterwards is pushing a new `index.html`.
 
 **Filers** open the link, type the team passphrase once per device, pick a project (asked on first visit, remembered after), give their name once, and add cards. No login. Cards waiting on a filer — a reviewer question, or a fix to confirm — are listed at the top of the page whichever project is selected. They can also reply when a card is *Needs info*, and confirm or send back a card that is *Implemented*. Those are the only changes a filer can make; a database trigger enforces it regardless of what the page sends.
 
-**The reviewer** signs in with an emailed link (address must be in the `reviewers` table). They triage, edit, manage projects, export and paste reports.
+**The reviewer** signs in with email and password (address must be in the `reviewers` table); the session persists on the device. They triage, edit, manage projects, export and paste reports.
 
 **Export** takes *new* cards only. It creates a batch, writes one markdown file per project (routing block from the project record, then the cards), zips it with the screenshots, and sets the cards to *In progress* with the batch id stamped on them.
 
