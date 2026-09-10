@@ -759,7 +759,11 @@ class SupabaseStore {
   async init() {
     if (!window.supabase) await loadScript('vendor/supabase-2.45.4.js');
     const headers = this.key ? { 'x-tessa-key': this.key } : {};
+    // A password-recovery link lands here with type=recovery in the hash. Note it now:
+    // supabase-js consumes the hash and fires PASSWORD_RECOVERY before boot subscribes.
+    this.recovery = /type=recovery/.test(location.hash);
     this.sb = window.supabase.createClient(this.cfg.supabaseUrl, this.cfg.supabaseAnonKey, { global: { headers } });
+    this.sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') this.recovery = true; });
   }
   /* Team passphrase: sent as a header on every request; the database rules require it (see has_key() in schema.sql). */
   setKey(k) { this.key = k; lsSet('tessa.key', k); }
@@ -1842,6 +1846,7 @@ window.addEventListener('unhandledrejection', e => { const m = (e.reason && e.re
     });
   }
   await refresh(); render();
+  if (!DEMO && store.recovery) { store.recovery = false; openSetPassword(); }
 })();
 </script>
 </body>
