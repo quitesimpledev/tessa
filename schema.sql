@@ -256,13 +256,49 @@ create policy reviewers_self on public.reviewers for select to authenticated
 -- service doesn't pass headers through), so the bucket caps size and type.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('screenshots', 'screenshots', true, 5242880, array['image/jpeg','image/png','image/webp'])
-on conflict (id) do update set public = true;
+values ('screenshots', 'screenshots', true, 20971520, array['image/jpeg','image/png','image/webp'])
+on conflict (id) do update set public = true, file_size_limit = 20971520;
 
 drop policy if exists "screenshots public read"   on storage.objects;
 drop policy if exists "screenshots anyone uploads" on storage.objects;
 drop policy if exists "screenshots reviewer deletes" on storage.objects;
 create policy "screenshots anyone uploads"   on storage.objects for insert to anon, authenticated with check (bucket_id = 'screenshots');
 create policy "screenshots reviewer deletes" on storage.objects for delete to authenticated using (bucket_id = 'screenshots' and public.is_reviewer());
+
+-- ---------- Attachments: the files bucket ----------
+-- Editors attach data files (CSV / XLSX / TXT / MD) that ride along in the export
+-- bundle. Same shape as screenshots: public bucket, unguessable paths, no listing,
+-- referenced only by the attachments table (which needs the passphrase). Uploads
+-- can't be passphrase-gated (storage doesn't pass headers), so the bucket caps
+-- size (10 MB) and type.
+
+create table if not exists public.attachments (
+  id            uuid primary key default gen_random_uuid(),
+  card_id       uuid not null references public.cards(id) on delete cascade,
+  storage_path  text not null,
+  filename      text not null,
+  mime          text not null default '',
+  size          integer not null default 0,
+  sort          integer not null default 0,
+  created_at    timestamptz not null default now()
+);
+create index if not exists attachments_card_idx on public.attachments(card_id);
+
+alter table public.attachments enable row level security;
+drop policy if exists att_read   on public.attachments;
+drop policy if exists att_insert on public.attachments;
+drop policy if exists att_delete on public.attachments;
+create policy att_read   on public.attachments for select to anon, authenticated using (public.has_access());
+create policy att_insert on public.attachments for insert to anon, authenticated with check (public.has_access());
+create policy att_delete on public.attachments for delete to authenticated using (public.is_reviewer());
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('attachments', 'attachments', true, 10485760, array['text/csv','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/plain','text/markdown'])
+on conflict (id) do update set public = true, file_size_limit = 10485760, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "attachments anyone uploads"   on storage.objects;
+drop policy if exists "attachments reviewer deletes" on storage.objects;
+create policy "attachments anyone uploads"   on storage.objects for insert to anon, authenticated with check (bucket_id = 'attachments');
+create policy "attachments reviewer deletes" on storage.objects for delete to authenticated using (bucket_id = 'attachments' and public.is_reviewer());
 
 -- Now run seed.sql.
