@@ -6,7 +6,8 @@ What's here:
 
 - `index.html` — the whole app. Vanilla JS, no build step. With `CONFIG` empty it runs on local demo data; with a Supabase URL and anon key it is the real thing.
 - `schema.sql` — tables, triggers, row-level security, the screenshots bucket. Paste into the Supabase SQL editor once.
-- `vendor/` — supabase-js and JSZip, pinned and served from this repo rather than a CDN.
+- `vendor/` — supabase-js and JSZip, pinned and served from this repo rather than a CDN, and the three fonts (`vendor/fonts/`, OFL-licensed). The page loads nothing from outside its own origin except the database.
+- `.github/workflows/keepalive.yml` — one API call a day so the free-tier database isn't paused for inactivity. Needs no secrets; see the comments in the file.
 
 Not here on purpose: `seed.sql` (the team passphrase, reviewer list and project list) stays outside the repo.
 
@@ -16,29 +17,29 @@ Not here on purpose: `seed.sql` (the team passphrase, reviewer list and project 
 
 1. Sign up at supabase.com (GitHub login works). New project: name `tessa`, region West EU, any database password (you never type it again).
 2. SQL Editor → New query → paste all of `schema.sql` → Run. Then a second query with `seed.sql`, after setting the passphrase, reviewer email and project list in it.
-3. Authentication → Emails → **Magic Link** template: the body must contain `{{ .Token }}` so the email carries a 6-digit code. Example body: `Your Tessa code is {{ .Token }}`. (If you skip this the email carries a link instead; clicking it also signs you in, it's just less phone-friendly.)
-4. Authentication → URL Configuration → Site URL: the GitHub Pages URL from step 2 once you have it (`https://<username>.github.io/tessa/`).
+3. Authentication → URL Configuration: set **Site URL** to the GitHub Pages URL from step 2 once you have it (`https://<username>.github.io/tessa/`) and add `https://<username>.github.io/tessa/**` under **Redirect URLs**. Supabase treats the Site URL as origin-only, so without the redirect entry the sign-in link lands on the domain root (a 404 on GitHub Pages).
+4. Reviewer sign-in is a magic link. The free tier doesn't let you edit the email template to carry a 6-digit code instead (that needs custom SMTP); the page is written for the link.
 5. Project Settings → API: copy **Project URL** and the **anon public** key into `CONFIG` at the top of `index.html`.
 
-Supabase free projects pause after about a week without traffic. Check whether that is still true on the project's dashboard; if it is, a daily ping from any always-on machine keeps it awake.
+Supabase free projects pause after about a week without traffic. The `keepalive` workflow in this repo pings the database once a day from GitHub Actions so that doesn't happen; it starts working as soon as the repo is on GitHub with `CONFIG` filled in. GitHub switches scheduled workflows off after 60 days without a commit (it emails first) — re-enable it from the Actions tab.
 
 ### 2. GitHub Pages (5 minutes)
 
 1. Create an empty public repo named `tessa`.
-2. Push `index.html`, `schema.sql`, `README.md` and `vendor/`. Never `seed.sql`.
+2. Push `index.html`, `schema.sql`, `README.md`, `vendor/` and `.github/`. Never `seed.sql`.
 3. Settings → Pages → Source: *Deploy from a branch*, branch `main`, folder `/ (root)`. The page is live at `https://<username>.github.io/tessa/` within a minute or two.
 
 Updating the app afterwards is pushing a new `index.html`.
 
 ## How it works
 
-**Filers** open the link, type the team passphrase once per device, then their name once, pick a project and add cards. No login. They can also reply when a card is *Needs info*, and confirm or send back a card that is *Implemented*. Those are the only changes a filer can make; a database trigger enforces it regardless of what the page sends.
+**Filers** open the link, type the team passphrase once per device, pick a project (asked on first visit, remembered after), give their name once, and add cards. No login. Cards waiting on a filer — a reviewer question, or a fix to confirm — are listed at the top of the page whichever project is selected. They can also reply when a card is *Needs info*, and confirm or send back a card that is *Implemented*. Those are the only changes a filer can make; a database trigger enforces it regardless of what the page sends.
 
-**The reviewer** signs in with an emailed code (address must be in the `reviewers` table). They triage, edit, manage projects, export and paste reports.
+**The reviewer** signs in with an emailed link (address must be in the `reviewers` table). They triage, edit, manage projects, export and paste reports.
 
 **Export** takes *new* cards only. It creates a batch, writes one markdown file per project (routing block from the project record, then the cards), zips it with the screenshots, and sets the cards to *In progress* with the batch id stamped on them.
 
-**Report-back**: the agent ends with one line per card — `PLZ-014 — done — what changed`. The reviewer opens the batch, pastes those lines, previews and applies. `done` → Implemented, `skipped`/`blocked` → Needs info, `rejected` → Rejected; the text becomes the reviewer note.
+**Report-back**: the agent ends with one line per card — `PLZ-014 — done — what changed`. The reviewer opens the batch, pastes those lines, previews and applies. The parser is forgiving: bullets, bold, `-`/`:`/`|` separators and table rows all read, a line that doesn't start with a card ID continues the previous card's note, and headings and preamble are ignored. `done` → Implemented, `skipped`/`blocked` → Needs info, `rejected` → Rejected; the text becomes the reviewer note.
 
 Statuses: new → needs info | rejected | in progress → implemented → verified.
 

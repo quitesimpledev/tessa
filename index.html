@@ -6,10 +6,17 @@
 <title>Tessa</title>
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* Fonts are vendored (vendor/fonts/, OFL-licensed, latin subset) so the page loads nothing from outside. */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url(vendor/fonts/inter-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url(vendor/fonts/inter-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url(vendor/fonts/inter-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; font-display: swap; src: url(vendor/fonts/inter-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'DM Serif Display'; font-style: normal; font-weight: 400; font-display: swap; src: url(vendor/fonts/dm-serif-display-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(vendor/fonts/jetbrains-mono-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url(vendor/fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url(vendor/fonts/jetbrains-mono-latin-600-normal.woff2) format('woff2'); }
+
 /* ============================================================
    Tessa — design tokens (dark theme). Swap this :root block for the house
    styleguide values when they change.
@@ -141,9 +148,10 @@ svg.i.lg { width: 18px; height: 18px; }
   display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
 }
 .chip:hover { border-color: var(--border-2); color: var(--fg-1); }
-.chip.on { background: var(--accent-soft); color: var(--accent-text); border-color: color-mix(in oklab, var(--accent) 40%, transparent); }
+/* Selected filter = neutral. Red is reserved for priority, danger and the primary action. */
+.chip.on { background: var(--bg-4); color: var(--fg-1); border-color: var(--border-2); }
 .chip .n { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); font-variant-numeric: tabular-nums; }
-.chip.on .n { color: inherit; opacity: .8; }
+.chip.on .n { color: var(--fg-2); }
 
 .badge {
   display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 8px 0 7px; border-radius: 999px;
@@ -221,7 +229,7 @@ svg.i.lg { width: 18px; height: 18px; }
 /* ---------- Review table ---------- */
 .table { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); overflow: hidden; }
 .trow {
-  display: grid; grid-template-columns: 28px 80px minmax(0,1fr) 176px 88px 44px 144px 116px; gap: 14px; align-items: center;
+  display: grid; grid-template-columns: 28px 80px minmax(0,1fr) 52px 44px 144px 116px; gap: 14px; align-items: center;
   padding: 12px 18px; min-height: 66px; border-bottom: 1px solid var(--border); cursor: pointer; width: 100%; text-align: left;
 }
 .trow:last-child { border-bottom: 0; }
@@ -233,8 +241,9 @@ svg.i.lg { width: 18px; height: 18px; }
 .thead span { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-4); }
 .trow .t { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .trow .t .title { font-weight: 500; font-size: 14.5px; color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.trow .t .where { font-size: 12.5px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.trow .proj { font-size: 12px; color: var(--fg-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center; }
+.trow .t .where { font-size: 12.5px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center; }
+.trow .t .where .type { font-size: 10px; }
+.trow .proj { display: flex; align-items: center; }
 .trow .filed { font-size: 12.5px; color: var(--fg-3); white-space: nowrap; }
 .cb { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border-2); background: var(--bg); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
 .cb.on { background: var(--accent); border-color: var(--accent); }
@@ -259,6 +268,36 @@ svg.i.lg { width: 18px; height: 18px; }
 .brow .sub { font-size: 12px; color: var(--fg-3); margin-top: 2px; }
 .help-btn { margin-left: 2px; }
 .skipped { font-size: 12px; color: var(--fg-2); line-height: 1.5; }
+
+/* ---------- Waiting on you (filer) ---------- */
+.attn { border: 1px solid color-mix(in oklab, var(--warn) 35%, transparent); background: color-mix(in oklab, var(--warn) 7%, transparent); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+.attn .attn-hd { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--fg-1); border-bottom: 1px solid color-mix(in oklab, var(--warn) 25%, transparent); }
+.attn .attn-hd .eyebrow { color: var(--warn); }
+.attn .attn-hd .sum { font-weight: 500; color: var(--fg-2); }
+.attn .arow { display: grid; grid-template-columns: 76px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 8px 14px; width: 100%; text-align: left; border-bottom: 1px solid color-mix(in oklab, var(--warn) 14%, transparent); cursor: pointer; }
+.attn .arow:last-child { border-bottom: 0; }
+.attn .arow:hover { background: color-mix(in oklab, var(--warn) 8%, transparent); }
+.attn .arow .title { font-weight: 500; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attn .arow .sub { font-size: 12px; color: var(--fg-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
+.attn .arow .ask { font-size: 12px; font-weight: 600; white-space: nowrap; color: var(--warn); }
+.attn .arow .ask.ok { color: var(--success); }
+.attn .more { font-size: 12px; color: var(--fg-3); padding: 8px 14px; }
+
+/* ---------- Project chooser (first visit) ---------- */
+.chooser { max-width: 560px; margin: 24px auto 0; }
+.chooser h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; letter-spacing: -.02em; color: var(--fg-1); }
+.chooser .lead { font-size: 13px; color: var(--fg-3); margin-bottom: 16px; }
+.chooser .card-search { max-width: none; margin-bottom: 10px; }
+.chooser .list { max-height: none; }
+.chooser .item { display: flex; align-items: center; gap: 12px; padding: 0 14px; height: 44px; width: 100%; text-align: left; font-size: 14px; color: var(--fg-1); border-bottom: 1px solid var(--border); }
+.chooser .item:last-child { border-bottom: 0; }
+.chooser .item:hover { background: var(--bg-3); }
+.chooser .item .n { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+
+/* ---------- Loading ---------- */
+.loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 96px 24px; color: var(--fg-3); font-size: 13px; }
+.spin { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-2); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .skipped .idm { color: var(--fg-1); }
 
 /* ---------- Projects ---------- */
@@ -441,6 +480,8 @@ pre.md .fh { color: var(--accent-text); }
   .trow .proj, .trow > .filed, .trow > .type, .trow > .pri, .trow > .stwrap, .thead { display: none; }
   .trow .mob .filed { flex-basis: 100%; }
   .row .stcol { display: none; }
+  .attn .arow { grid-template-columns: minmax(0,1fr) auto; }
+  .attn .arow > .idm { display: none; }
   .fld input[type=text], .fld input[type=email], .fld textarea, .fld select { font-size: 16px; }
   .pill-btn .long { display: none; }
   .prow { grid-template-columns: 48px minmax(0,1fr) 64px; }
@@ -608,15 +649,19 @@ class LocalStore {
     if (i >= 0) ps[i] = { ...ps[i], ...p }; else ps.push({ seq: 0, active: true, ...p });
     this.s('projects', ps); return p;
   }
-  async listCards() { return this.g('cards', []); }
+  /* projectId narrows the load (filers only need their project); omitted = everything (reviewer). */
+  async listCards(projectId) { const cs = this.g('cards', []); return projectId ? cs.filter(c => c.project_id === projectId) : cs; }
+  /* Light index of every card — id, project, status, and enough to list the ones waiting on a filer. */
+  async listCardIndex() { return this.g('cards', []).map(c => ({ id: c.id, display_id: c.display_id, title: c.title, project_id: c.project_id, status: c.status, filer_name: c.filer_name, updated_at: c.updated_at })); }
   async getCard(id) { return (await this.listCards()).find(c => c.id === id); }
   async createCard(card, shots = [], files = []) {
     const ps = await this.listProjects(); const p = ps.find(x => x.id === card.project_id);
     p.seq = (p.seq || 0) + 1; this.s('projects', ps);
     const now = new Date().toISOString();
     const c = { id: uid(), display_id: `${p.prefix}-${pad3(p.seq)}`, status: 'new', created_at: now, updated_at: now, filer_reply: '', reviewer_note: '', batch_id: null, ...card };
-    const cs = await this.listCards(); cs.push(c); this.s('cards', cs);
+    const cs = this.g('cards', []); cs.push(c); this.s('cards', cs);
     if (shots.length) { const all = this.g('shots', {}); all[c.id] = shots; this.s('shots', all); }
+    c.upload_failed = 0;
     return c;
   }
   async updateCard(id, patch) {
@@ -726,36 +771,52 @@ class SupabaseStore {
     if (p.id) return this.q(this.sb.from('projects').update(row).eq('id', p.id).select().single());
     return this.q(this.sb.from('projects').insert(row).select().single());
   }
-  async listCards() {
-    const rows = await this.q(this.sb.from('cards').select('*, screenshots(id, storage_path, sort), attachments(id, storage_path, filename, mime, size, sort)').order('created_at'));
+  /* Full rows with screenshot/attachment joins. Filers pass their project so the
+     page never pulls every card in the database on each click. */
+  async listCards(projectId) {
+    let qy = this.sb.from('cards').select('*, screenshots(id, storage_path, sort), attachments(id, storage_path, filename, mime, size, sort)');
+    if (projectId) qy = qy.eq('project_id', projectId);
+    const rows = await this.q(qy.order('created_at'));
     this.shotMap = {}; this.attMap = {};
     return rows.map(r => { const s = (r.screenshots || []).slice().sort((a, b) => a.sort - b.sort); this.shotMap[r.id] = s; const a = (r.attachments || []).slice().sort((x, y) => x.sort - y.sort); this.attMap[r.id] = a; delete r.screenshots; delete r.attachments; return r; });
   }
+  /* Seven short columns for every card — counts per project and the "waiting on you" list. */
+  async listCardIndex() { return this.q(this.sb.from('cards').select('id, display_id, title, project_id, status, filer_name, updated_at').order('updated_at', { ascending: false })); }
   async getCard(id) { return this.q(this.sb.from('cards').select('*').eq('id', id).maybeSingle()); }
+  /* The card is filed first; a screenshot or file that fails to upload is counted
+     (c.upload_failed) rather than thrown, so the filer sees the card ID and doesn't file it twice. */
   async createCard(card, shots = [], files = []) {
     const c = await this.q(this.sb.from('cards').insert(card).select().single());
-    await this.uploadShots(c.id, shots, 0);
-    await this.uploadAtts(c.id, files, 0);
+    c.upload_failed = 0;
+    c.upload_failed += await this.uploadShots(c.id, shots, 0, true);
+    c.upload_failed += await this.uploadAtts(c.id, files, 0, true);
     return c;
   }
-  async uploadShots(cardId, dataUrls, startSort) {
+  async uploadShots(cardId, dataUrls, startSort, lenient = false) {
+    let failed = 0;
     for (let i = 0; i < dataUrls.length; i++) {
-      const path = `${cardId}/${Date.now().toString(36)}-${i}.jpg`; const blob = dataUrlToBlob(dataUrls[i]);
-      await this.q(this.sb.storage.from('screenshots').upload(path, blob, { contentType: blob.type || 'image/jpeg' }));
-      await this.q(this.sb.from('screenshots').insert({ card_id: cardId, storage_path: path, sort: startSort + i }));
+      try {
+        const path = `${cardId}/${Date.now().toString(36)}-${i}.jpg`; const blob = dataUrlToBlob(dataUrls[i]);
+        await this.q(this.sb.storage.from('screenshots').upload(path, blob, { contentType: blob.type || 'image/jpeg' }));
+        await this.q(this.sb.from('screenshots').insert({ card_id: cardId, storage_path: path, sort: startSort + i }));
+      } catch (e) { if (!lenient) throw e; console.error(e); failed++; }
     }
+    return failed;
   }
-  async uploadAtts(cardId, files, startSort) {
-    let i = 0;
+  async uploadAtts(cardId, files, startSort, lenient = false) {
+    let i = 0, failed = 0;
     for (const f of files) {
       if (!f || !f.dataUrl) continue;
-      const ext = (f.name.split('.').pop() || 'dat').toLowerCase();
-      const blob = dataUrlToBlob(f.dataUrl);
-      const path = `${cardId}/att-${Date.now().toString(36)}-${i}.${ext}`;
-      await this.q(this.sb.storage.from('attachments').upload(path, blob, { contentType: f.mime || 'application/octet-stream' }));
-      await this.q(this.sb.from('attachments').insert({ card_id: cardId, storage_path: path, filename: f.name, mime: f.mime || '', size: f.size || blob.size, sort: startSort + i }));
+      try {
+        const ext = (f.name.split('.').pop() || 'dat').toLowerCase();
+        const blob = dataUrlToBlob(f.dataUrl);
+        const path = `${cardId}/att-${Date.now().toString(36)}-${i}.${ext}`;
+        await this.q(this.sb.storage.from('attachments').upload(path, blob, { contentType: f.mime || 'application/octet-stream' }));
+        await this.q(this.sb.from('attachments').insert({ card_id: cardId, storage_path: path, filename: f.name, mime: f.mime || '', size: f.size || blob.size, sort: startSort + i }));
+      } catch (e) { if (!lenient) throw e; console.error(e); failed++; }
       i++;
     }
+    return failed;
   }
   async updateCard(id, patch) { return this.q(this.sb.from('cards').update(patch).eq('id', id).select().single()); }
   async moveCard(id, projectId) { return this.updateCard(id, { project_id: projectId }); }
@@ -829,22 +890,32 @@ const state = {
   reviewer: lsGet('tessa.ui.reviewer', null),   // email or null
   filter: { status: 'open' },
   rf: { project: 'all', status: 'open', type: 'all', pri: 'all' },
+  q: { cards: '', review: '', chooser: '' },   // search boxes survive re-renders
   selection: new Set(),
-  cache: { projects: [], cards: [], shotCounts: {}, attCounts: {}, batches: [] },
+  cache: { projects: [], cards: [], index: [], shotCounts: {}, attCounts: {}, batches: [] },
 };
 function persistUi() { lsSet('tessa.ui.project', state.projectId); lsSet('tessa.ui.me', state.me); if (DEMO) lsSet('tessa.ui.reviewer', state.reviewer); }
 async function refresh() {
   state.cache.projects = await store.listProjects();
-  state.cache.cards = await store.listCards();
+  // No default project. A first-time filer picks one (the chooser page) rather than
+  // landing on whichever project sorts first and filing against it by accident.
+  if (state.projectId && !state.cache.projects.find(p => p.id === state.projectId && p.active)) state.projectId = null;
+  if (state.reviewer) {
+    state.cache.cards = await store.listCards();
+    state.cache.index = state.cache.cards;
+  } else {
+    // Filers: one project's cards in full, plus a light index of everything for
+    // counts and the "waiting on you" list.
+    state.cache.cards = state.projectId ? await store.listCards(state.projectId) : [];
+    state.cache.index = await store.listCardIndex();
+  }
   state.cache.shotCounts = await store.shotCounts();
   state.cache.attCounts = await store.attCounts();
   state.cache.batches = state.reviewer ? await store.listBatches() : [];
-  if (!state.projectId || !state.cache.projects.find(p => p.id === state.projectId && p.active)) {
-    state.projectId = (state.cache.projects.find(p => p.active) || {}).id || null;
-  }
 }
 const proj = id => state.cache.projects.find(p => p.id === id);
 const isOpen = s => !['verified', 'rejected'].includes(s);
+const openCount = pid => state.cache.index.filter(c => c.project_id === pid && isOpen(c.status)).length;
 
 /* ---------- Rendering: shell ---------- */
 function render() {
@@ -852,6 +923,20 @@ function render() {
   if (!state.reviewer && !['cards'].includes(state.view)) state.view = 'cards';
   const views = { review: renderReview, projects: renderProjects, batches: renderBatches };
   app.innerHTML = `${renderTopbar()}<main class="page" id="main">${(views[state.view] || renderCards)()}</main>`;
+  restoreSearch();
+}
+function renderLoading() {
+  $('#app').innerHTML = `<header class="topbar"><a class="wordmark" href="#"><span>Tessa<span class="dot">.</span></span></a></header><main class="page"><div class="loading"><div class="spin"></div><span>Loading cards…</span></div></main>`;
+}
+/* Search boxes are plain DOM filters; the query lives in state so a re-render (any click) keeps it. */
+const searchKey = () => state.view === 'review' ? 'review' : (state.projectId ? 'cards' : 'chooser');
+function applySearch(q) {
+  q = (q || '').trim().toLowerCase();
+  document.querySelectorAll('#main [data-search]').forEach(el => { el.hidden = !!q && !el.dataset.search.includes(q); });
+}
+function restoreSearch() {
+  const inp = $('#main .card-search'); if (!inp) return;
+  const q = state.q[searchKey()] || ''; if (q) { inp.value = q; applySearch(q); }
 }
 function renderTopbar() {
   const rev = !!state.reviewer;
@@ -889,9 +974,37 @@ function openHelp() {
 }
 
 /* ---------- Cards (filer view) ---------- */
+function renderChooser() {
+  const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  if (!ps.length) return `<div class="empty"><b>No projects yet</b>A reviewer needs to add one first.</div>`;
+  return `<div class="chooser">
+    <h1>Which app are you looking at?</h1>
+    <div class="lead">Pick the project your card is about. Tessa remembers it on this device — change it any time from the title.</div>
+    <input class="card-search" type="search" placeholder="Type to find…" autocomplete="off" autofocus>
+    <div class="list">${ps.map(p => `<button class="item" data-act="pick-project" data-id="${p.id}" data-search="${esc((p.name + ' ' + p.prefix).toLowerCase())}"><span class="prefix">${esc(p.prefix)}</span>${esc(p.name)}<span class="n">${openCount(p.id)} open</span></button>`).join('')}</div>
+  </div>`;
+}
+/* Cards waiting on a filer — Needs info (answer the reviewer) and Implemented
+   (confirm the fix) — across every project, since the loop stalls there. */
+function attentionHtml() {
+  if (state.reviewer) return '';
+  const wait = state.cache.index.filter(c => c.status === 'needs_info' || c.status === 'implemented');
+  if (!wait.length) return '';
+  const me = (state.me || '').trim().toLowerCase();
+  wait.sort((a, b) => ((b.filer_name || '').toLowerCase() === me) - ((a.filer_name || '').toLowerCase() === me) || (b.updated_at || '').localeCompare(a.updated_at || ''));
+  const nInfo = wait.filter(c => c.status === 'needs_info').length, nImpl = wait.length - nInfo;
+  const parts = []; if (nInfo) parts.push(`${nInfo} need${nInfo === 1 ? 's' : ''} a reply`); if (nImpl) parts.push(`${nImpl} to confirm`);
+  const MAX = 6; const shown = wait.slice(0, MAX);
+  return `<div class="attn">
+    <div class="attn-hd"><span class="eyebrow">Waiting on you</span><span class="sum">${parts.join(' · ')}</span></div>
+    ${shown.map(c => { const p = proj(c.project_id) || {}; const info = c.status === 'needs_info';
+      return `<button class="arow" data-act="open" data-id="${c.id}"><span class="idm">${esc(c.display_id)}</span><div style="min-width:0"><div class="title">${esc(c.title)}</div><div class="sub"><span class="prefix">${esc(p.prefix || '')}</span><span>${esc(p.name || '')}</span><span>·</span><span>${esc(c.filer_name)}</span></div></div><span class="ask ${info ? '' : 'ok'}">${info ? 'Reviewer has a question' : 'Fixed — confirm?'}</span></button>`; }).join('')}
+    ${wait.length > MAX ? `<div class="more">and ${wait.length - MAX} more — filter by status to see them</div>` : ''}
+  </div>`;
+}
 function renderCards() {
   const p = proj(state.projectId);
-  if (!p) return `<div class="empty"><b>No projects yet</b>A reviewer needs to add one first.</div>`;
+  if (!p) return renderChooser();
   const all = state.cache.cards.filter(c => c.project_id === p.id);
   const counts = { all: all.length }; for (const s of STATUSES) counts[s.id] = all.filter(c => c.status === s.id).length;
   const open = all.filter(c => isOpen(c.status)).length;
@@ -908,10 +1021,11 @@ function renderCards() {
       </div>
       <div class="actions"><button class="btn primary" data-act="new-card">${ic('plus')}New card</button></div>
     </div>
+    ${attentionHtml()}
     <div class="filters">${chips}</div>
     <div class="cardsearch"><input class="card-search" type="search" placeholder="Search ${esc(p.prefix)} cards\u2026" autocomplete="off"></div>
     <div class="list">
-      ${cards.length ? cards.map(rowHtml).join('') : `<div class="empty"><b>${f === 'all' ? `No cards yet for ${esc(p.name)}` : `Nothing ${esc(stLabel(f).toLowerCase())}`}</b>${f === 'all' ? 'File the first one — a title and where you saw it is enough.' : 'Try another filter.'}</div>`}
+      ${cards.length ? cards.map(rowHtml).join('') : !all.length ? `<div class="empty"><b>No cards yet for ${esc(p.name)}</b>File the first one — a title and where you saw it is enough.</div>` : `<div class="empty"><b>Nothing ${f === 'all' ? 'here' : esc(stLabel(f).toLowerCase())}</b>Try another filter.</div>`}
     </div>
     <button class="btn primary fab" data-act="new-card">${ic('plus')}New card</button>`;
 }
@@ -950,7 +1064,7 @@ function renderReview() {
       <div><h1>Review</h1><div class="sub">${cards.length} shown · ${allOpen.length} open across ${state.cache.projects.filter(p => p.active).length} projects</div></div>
       <div class="actions"><button class="btn" data-act="select-visible">${allVisibleSel ? 'Clear selection' : 'Select all shown'}</button></div>
     </div>
-    ${(() => { const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es')); const cnt = p => state.cache.cards.filter(c => c.project_id === p.id && isOpen(c.status)).length;
+    ${(() => { const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es')); const cnt = p => openCount(p.id);
       if (ps.length <= 8) return `<div class="filters"><span class="lbl">Project</span>${chip('project', 'all', 'All')}${ps.map(p => chip('project', p.id, p.name, cnt(p))).join('')}</div>`;
       const withOpen = ps.filter(p => cnt(p) > 0), rest = ps.filter(p => cnt(p) === 0);
       const opt = p => `<option value="${p.id}" ${rf.project === p.id ? 'selected' : ''}>${esc(p.name)}${cnt(p) ? ` (${cnt(p)} open)` : ''}</option>`;
@@ -960,7 +1074,7 @@ function renderReview() {
       <span class="gap"></span><span class="lbl">Priority</span>${chip('pri', 'all', 'All')}${PRIORITIES.map(p => chip('pri', p.id, p.label)).join('')}</div>
     <div class="filters"><span class="lbl">Search</span><input class="card-search" type="search" placeholder="ID, title, where, filer\u2026" autocomplete="off"></div>
     <div class="table">
-      <div class="trow thead"><span></span><span>ID</span><span>Card</span><span>Project</span><span>Type</span><span>Pri</span><span>Status</span><span>Filed</span></div>
+      <div class="trow thead"><span></span><span>ID</span><span>Card</span><span>App</span><span>Pri</span><span>Status</span><span>Filed</span></div>
       ${cards.length ? cards.map(trowHtml).join('') : `<div class="empty"><b>Nothing matches</b>Loosen a filter.</div>`}
     </div>
     ${sel.size ? `<div class="selbar">
@@ -976,9 +1090,8 @@ function trowHtml(c) {
   return `<div class="trow ${on ? 'sel' : ''}" data-act="open" data-id="${c.id}" role="button" tabindex="0" data-search="${esc((c.display_id + ' ' + c.title + ' ' + c.where + ' ' + c.filer_name).toLowerCase())}">
     <span class="cb ${on ? 'on' : ''}" data-act="toggle-sel" data-id="${c.id}" role="checkbox" aria-checked="${on}">${on ? ic('check') : ''}</span>
     <span class="idm">${esc(c.display_id)}</span>
-    <div class="t"><div class="title">${esc(c.title)}</div><div class="where">${esc(c.where)}</div></div>
-    <span class="proj"><span class="prefix">${esc(p.prefix || '')}</span>${esc(p.name || '')}</span>
-    <span class="type">${esc(tyLabel(c.type))}</span>
+    <div class="t"><div class="title">${esc(c.title)}</div><div class="where"><span class="type">${esc(tyLabel(c.type))}</span><span>·</span><span style="overflow:hidden;text-overflow:ellipsis">${esc(c.where)}</span></div></div>
+    <span class="proj" title="${esc(p.name || '')}"><span class="prefix">${esc(p.prefix || '')}</span></span>
     ${pri(c.priority)}
     <span class="stwrap">${stSel}</span>
     <span class="filed">${esc(c.filer_name)} · ${fmtDate(c.created_at)}</span>
@@ -1031,12 +1144,24 @@ function renderBatches() {
     </div>`;
 }
 const REPORT_WORDS = { done: 'implemented', fixed: 'implemented', implemented: 'implemented', applied: 'implemented', skipped: 'needs_info', skip: 'needs_info', blocked: 'needs_info', rejected: 'rejected', reject: 'rejected', wontfix: 'rejected' };
+/* One card per line, `ID — word — note`. Real agent output wraps: a line that doesn't
+   start with a card ID continues the previous card's note (so a two-line `blocked —`
+   explanation survives), headings and table rules are skipped, and anything before
+   the first card line is preamble, counted but not shown as an error. */
+const ID_LINE = /^(?:[-*•|]\s*)?\**`?([A-Za-z]{2,4}-\d+)`?\**\s*(?:[—–\-:|]+\s*)\**([A-Za-z_]+)\**\s*(?:[—–\-:|]+\s*(.*?))?\s*\|?\s*$/;
 function parseReport(text, batch) {
-  const out = [];
+  const out = []; let preamble = 0;
   for (const raw of String(text || '').split(/\r?\n/)) {
     const line = raw.trim(); if (!line) continue;
-    const m = line.match(/^(?:[-*]\s*)?`?([A-Za-z]{2,4}-\d+)`?\s*(?:[—–\-:|]+\s*)([A-Za-z_]+)\s*(?:[—–\-:|]+\s*(.*))?$/);
-    if (!m) { out.push({ raw: line, ok: false, why: 'Not understood — expected "ID — done — what changed"' }); continue; }
+    const m = line.match(ID_LINE);
+    if (!m) {
+      if (/^(#|---|\|?\s*-{2,}\s*\|)/.test(line)) continue;                 // heading or table rule
+      const prev = out[out.length - 1];
+      if (!prev) { preamble++; continue; }                                     // text before the first card line
+      const cont = line.replace(/^[-*•|]\s*/, '').replace(/\|\s*$/, '').trim();
+      if (prev.ok) prev.note = (prev.note ? prev.note + '\n' : '') + cont; else prev.raw += '\n' + cont;
+      continue;
+    }
     const id = m[1].toUpperCase(); const word = m[2].toLowerCase(); const note = (m[3] || '').trim();
     const card = state.cache.cards.find(c => c.display_id === id);
     if (!card) { out.push({ raw: line, ok: false, id, why: `No card ${id}` }); continue; }
@@ -1044,6 +1169,7 @@ function parseReport(text, batch) {
     if (!status) { out.push({ raw: line, ok: false, id, why: `"${word}" isn't one of done · skipped · blocked · rejected` }); continue; }
     out.push({ raw: line, ok: true, id, card, status, note, inBatch: batch.card_ids.includes(card.id), same: card.status === status });
   }
+  out.preamble = preamble;
   return out;
 }
 async function openBatch(id) {
@@ -1069,12 +1195,12 @@ async function previewReport(batchId) {
   const b = await store.getBatch(batchId); const el = layerStack[layerStack.length - 1].el;
   const text = $('#rp-text', el).value; const ch = parseReport(text, b);
   const host = $('#rp-preview', el);
-  if (!ch.length) { host.innerHTML = `<div class="callout warn">Nothing to read — paste the report first.</div>`; return; }
+  if (!ch.length) { host.innerHTML = `<div class="callout warn">${ch.preamble ? 'No card lines found — each card needs its own line starting with its ID, like <span class="mono">TRV-002 — done — what changed</span>.' : 'Nothing to read — paste the report first.'}</div>`; return; }
   const good = ch.filter(x => x.ok);
   host.innerHTML = `<div class="eyebrow" style="margin-bottom:8px">What will change</div><div class="list">${ch.map(x => x.ok
-    ? `<div class="row" style="cursor:default;min-height:44px;padding:8px 12px"><span class="idm">${esc(x.id)}</span><div class="main"><div class="title" style="font-weight:400">${badge(x.card.status)} <span class="muted">→</span> ${badge(x.status)}${x.same ? ' <span class="muted">(already)</span>' : ''}${x.inBatch ? '' : ' <span class="muted">· not in this batch</span>'}</div>${x.note ? `<div class="sub" style="white-space:normal">${esc(x.note)}</div>` : ''}</div><span></span></div>`
+    ? `<div class="row" style="cursor:default;min-height:44px;padding:8px 12px"><span class="idm">${esc(x.id)}</span><div class="main"><div class="title" style="font-weight:400">${badge(x.card.status)} <span class="muted">→</span> ${badge(x.status)}${x.same ? ' <span class="muted">(already)</span>' : ''}${x.inBatch ? '' : ' <span class="muted">· not in this batch</span>'}</div>${x.note ? `<div class="sub" style="white-space:pre-wrap">${esc(x.note)}</div>` : ''}</div><span></span></div>`
     : `<div class="row" style="cursor:default;min-height:44px;padding:8px 12px;background:color-mix(in oklab, var(--warn) 6%, transparent)"><span class="idm" style="color:var(--warn)">?</span><div class="main"><div class="title" style="font-weight:400;color:var(--warn);white-space:normal">${esc(x.why)}</div><div class="sub" style="white-space:normal;font-family:var(--font-mono)">${esc(x.raw)}</div></div><span></span></div>`).join('')}</div>
-    <div class="help" style="margin-top:8px">${good.length} of ${ch.length} line${ch.length === 1 ? '' : 's'} understood${ch.length - good.length ? ' — the rest are left unchanged' : ''}. The raw report is kept on the batch either way.</div>`;
+    <div class="help" style="margin-top:8px">${good.length} of ${ch.length} card line${ch.length === 1 ? '' : 's'} understood${ch.length - good.length ? ' — the rest are left unchanged' : ''}${ch.preamble ? ` · ${ch.preamble} line${ch.preamble === 1 ? '' : 's'} before the first card ignored` : ''}. The raw report is kept on the batch either way.</div>`;
   el._changes = good; $('[data-act="rp-apply"]', el).disabled = !good.length; $('[data-act="rp-apply"]', el).textContent = `Apply ${good.length} change${good.length === 1 ? '' : 's'}`;
 }
 async function applyReport(batchId) {
@@ -1118,7 +1244,7 @@ function toggleProjPop() {
   if (host.innerHTML) { host.innerHTML = ''; return; }
   const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es'));
   host.innerHTML = `<div class="pop pop-proj"><div class="hd">Project</div><input class="pop-search" id="proj-search" type="search" placeholder="Type to find…" autocomplete="off"><div class="pop-list">${ps.map(p => {
-    const n = state.cache.cards.filter(c => c.project_id === p.id && isOpen(c.status)).length;
+    const n = openCount(p.id);
     return `<button class="item ${p.id === state.projectId ? 'on' : ''}" data-act="pick-project" data-id="${p.id}" data-search="${esc((p.name + ' ' + p.prefix).toLowerCase())}"><span class="prefix">${esc(p.prefix)}</span>${esc(p.name)}<span class="n">${n} open</span></button>`; }).join('')}</div></div>`;
   const inp = $('#proj-search');
   inp.addEventListener('input', () => { const q = inp.value.trim().toLowerCase(); $$('.pop-list .item', host).forEach(b => { b.hidden = !!q && !b.dataset.search.includes(q); }); });
@@ -1272,10 +1398,15 @@ async function submitCard() {
     return;
   }
   state.me = v('filer_name'); persistUi();
+  const nShots = draft.shots.length, nFiles = draft.files.length;
   const c = await store.createCard({ project_id: projectId, filer_name: state.me, ...fields }, draft.shots, draft.files);
   if (projectId !== state.projectId) { state.projectId = projectId; state.filter.status = 'open'; persistUi(); }
   closeLayer(); await refresh(); render();
-  toast(`${ic('check')}<span class="idm">${esc(c.display_id)}</span> filed`);
+  if (c.upload_failed) {
+    // The card exists — say so with its ID, so the filer doesn't file it again.
+    const what = nShots && nFiles ? 'attachments' : nShots ? 'screenshots' : 'files';
+    toast(`${ic('check')}<span class="idm">${esc(c.display_id)}</span> filed — but ${c.upload_failed} of ${nShots + nFiles} ${what} didn't upload. Don't refile; mention it to the reviewer.`, 9000);
+  } else toast(`${ic('check')}<span class="idm">${esc(c.display_id)}</span> filed`);
 }
 function originalHtml(c) {
   if (!c.original) return '';
@@ -1388,13 +1519,21 @@ function toggleMeMenu() {
   pop.innerHTML = `<div class="hd">${esc(state.reviewer)}</div><button class="item" data-act="edit-me">${ic('user')}Your name for exports${state.me ? ` <span class="n">${esc(state.me)}</span>` : ''}</button><hr><button class="item dim" data-act="signout">${ic('logout')}Sign out</button>`;
   host.appendChild(pop);
 }
-function openEditMe() {
-  const el = openLayer('modal', `<div class="modal-card sm"><div class="modal-head"><h4>Your name</h4>${headBtn}</div>
-    <form class="modal-body" id="me-form"><div class="fld"><label for="m-name">Name</label><input type="text" id="m-name" value="${esc(state.me)}" placeholder="First name is fine" autofocus autocomplete="name"><div class="help">Goes on the cards you file and on exports you make. Remembered on this device.</div></div></form>
-    <div class="modal-foot"><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="save-me">Save</button></div></div>`);
+/* `then` runs after the name is saved — e.g. open the card form the filer was reaching for. */
+let afterName = null;
+function openEditMe(then) {
+  afterName = then || null;
+  const first = !state.me && !!then;
+  const el = openLayer('modal', `<div class="modal-card sm"><div class="modal-head"><h4>${first ? 'First, your name' : 'Your name'}</h4>${headBtn}</div>
+    <form class="modal-body" id="me-form"><div class="fld"><label for="m-name">Name</label><input type="text" id="m-name" value="${esc(state.me)}" placeholder="First name is fine" autofocus autocomplete="name"><div class="help">${first ? 'It goes on the card so the reviewer can follow up. Remembered on this device — you won\'t be asked again.' : 'Goes on the cards you file and on exports you make. Remembered on this device.'}</div></div></form>
+    <div class="modal-foot"><button class="btn ghost" data-close="1">Cancel</button><button class="btn primary" data-act="save-me">${first ? 'Continue' : 'Save'}</button></div></div>`, { onClose: () => { afterName = null; } });
   $('#me-form', el).addEventListener('submit', e => { e.preventDefault(); saveMe(); });
 }
-function saveMe() { state.me = $('#m-name').value.trim(); persistUi(); closeLayer(); render(); }
+function saveMe() {
+  const name = $('#m-name').value.trim(); if (!name) { $('#m-name').focus(); return; }
+  state.me = name; persistUi(); const next = afterName; afterName = null; closeLayer(); render();
+  if (next) setTimeout(next, 60);
+}
 
 /* ---------- Project editor ---------- */
 function openProjectEditor(id) {
@@ -1564,10 +1703,10 @@ const actions = {
   view: el => { state.view = el.dataset.v; if (state.view !== 'review') state.selection.clear(); closeAll(); $$('.pop').forEach(p => p.remove()); render(); },
   'proj-menu': () => toggleProjPop(),
   'rf-project': el => { state.rf.project = el.value; state.selection.clear(); render(); },
-  'pick-project': el => { state.projectId = el.dataset.id; state.filter.status = 'open'; persistUi(); render(); },
+  'pick-project': async el => { state.projectId = el.dataset.id; state.filter.status = 'open'; state.q.cards = ''; persistUi(); $$('.pop').forEach(p => p.remove()); await refresh(); render(); },
   filter: el => { state.filter.status = el.dataset.s; render(); },
   rf: el => { state.rf[el.dataset.g] = el.dataset.v; render(); },
-  'new-card': () => { if (!state.me) { openEditMe(); toast('Add your name first — it goes on the card'); return; } openNewCard(); },
+  'new-card': () => { if (!state.me) { openEditMe(openNewCard); return; } openNewCard(); },
   open: el => openCard(el.dataset.id),
   'set-type': el => { draft.type = el.dataset.v; $$('#seg-type button').forEach(b => b.classList.toggle('on', b.dataset.v === draft.type)); $('#type-fields').innerHTML = typeFieldsHtml(draft.type, draft.editCard || {}); $('#f-where').placeholder = WHERE_PH[draft.type]; },
   'edit-card': el => openEditCard(el.dataset.id),
@@ -1612,8 +1751,7 @@ const actions = {
 document.addEventListener('input', e => {
   const t = e.target;
   if (!t || !t.classList || !t.classList.contains('card-search')) return;
-  const q = t.value.trim().toLowerCase();
-  document.querySelectorAll('.list .row[data-search], .table .trow[data-search]').forEach(el => { el.hidden = !!q && !el.dataset.search.includes(q); });
+  state.q[searchKey()] = t.value; applySearch(t.value);
 });
 document.addEventListener('click', e => {
   const closeEl = e.target.closest('[data-close]'); if (closeEl) { e.preventDefault(); closeLayer(); return; }
@@ -1653,6 +1791,7 @@ function renderKeyGate(wrong) {
 /* ---------- Boot ---------- */
 window.addEventListener('unhandledrejection', e => { const m = (e.reason && e.reason.message) || String(e.reason); console.error(e.reason); toast(`Something went wrong: ${esc(m)}`, 6000); });
 (async function boot() {
+  renderLoading();
   if (DEMO) {
     if (!store.seeded()) await store.seed();
   } else {
