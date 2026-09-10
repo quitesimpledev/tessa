@@ -1465,13 +1465,14 @@ async function buildFiles(groups, batchNo, exporter) {
   const files = []; for (const g of groups) files.push({ name: `tessa-batch-${batchNo}-${g.project.prefix}.md`, md: await buildMarkdown(g, batchNo, exporter), group: g });
   return files;
 }
-async function openExport() {
+async function openExport(force = false) {
   const selIds = Array.from(state.selection); if (!selIds.length) return;
   const selected = state.cache.cards.filter(c => selIds.includes(c.id));
-  const fresh = selected.filter(c => c.status === 'new'); const skipped = selected.filter(c => c.status !== 'new');
-  const skippedHtml = skipped.length ? `<div class="callout warn skipped"><span><b style="color:var(--fg-1)">Skipped ${skipped.length} — export takes new cards only.</b> ${skipped.map(c => `<span class="idm">${esc(c.display_id)}</span> (${esc(stLabel(c.status).toLowerCase())})`).join(', ')}.</span></div>` : '';
+  const fresh = force ? selected : selected.filter(c => c.status === 'new'); const skipped = force ? [] : selected.filter(c => c.status !== 'new');
+  const skippedHtml = skipped.length ? `<div class="callout warn skipped"><span><b style="color:var(--fg-1)">${skipped.length} already exported, left out of this batch.</b> ${skipped.map(c => `<span class="idm">${esc(c.display_id)}</span> (${esc(stLabel(c.status).toLowerCase())})`).join(', ')}.</span></div>` : '';
   if (!fresh.length) {
-    openLayer('modal', `<div class="modal-card sm"><div class="modal-head"><h4>Nothing to export</h4>${headBtn}</div><div class="modal-body">${skippedHtml}<div class="help">Cards that were already exported keep their batch. To send one again, set it back to New first.</div></div><div class="modal-foot"><button class="btn primary" data-close="1">OK</button></div></div>`);
+    const reBtn = skipped.length ? `<button class="btn primary" data-act="reexport">${ic('download')}Re-export ${skipped.length === 1 ? 'it' : `all ${skipped.length}`} anyway</button>` : '';
+    openLayer('modal', `<div class="modal-card sm"><div class="modal-head"><h4>Nothing new to export</h4>${headBtn}</div><div class="modal-body">${skippedHtml}<div class="help">These were already exported. You can re-export them anyway — they'll get a fresh batch and move back to In progress.</div></div><div class="modal-foot"><button class="btn ghost" data-close="1">Cancel</button>${reBtn}</div></div>`);
     return;
   }
   const ids = fresh.map(c => c.id);
@@ -1489,7 +1490,7 @@ async function openExport() {
       <pre class="md" id="md-preview">${preview}</pre>
       <div class="help">Exporting marks ${ids.length === 1 ? 'this card' : `these ${ids.length} cards`} <b>In progress</b> and stamps batch ${nextNo} on ${ids.length === 1 ? 'it' : 'them'}, so nothing goes out twice. When the agent reports back, open the batch and paste the report.</div>
     </div>
-    <div class="modal-foot"><span class="left">One .md per project${shotCount ? ' + screenshots/' : ''}${fileCount ? ' + files/' : ''}, zipped.</span><button class="btn" data-act="copy-md">${ic('copy')}Copy markdown</button><button class="btn primary" data-act="download-zip">${ic('download')}Download zip</button></div>
+    <div class="modal-foot"><span class="left">One .md per project${shotCount ? ' + screenshots/' : ''}${fileCount ? ' + files/' : ''}, zipped.</span>${skipped.length ? `<button class="btn" data-act="reexport">Include the ${skipped.length} already-exported</button>` : ''}<button class="btn" data-act="copy-md">${ic('copy')}Copy markdown</button><button class="btn primary" data-act="download-zip">${ic('download')}Download zip</button></div>
   </div>`);
   el._export = { files, groups, nextNo, ids, exporter };
 }
@@ -1594,6 +1595,7 @@ const actions = {
   'row-status': async (el, e) => { e.stopPropagation(); await store.updateCard(el.dataset.id, { status: el.value }); await refresh(); render(); toast(`${esc((await store.getCard(el.dataset.id)).display_id)} → ${esc(stLabel(el.value))}`); },
   'bulk-status': async el => { const s = el.value; if (!s) return; for (const id of state.selection) await store.updateCard(id, { status: s }); const n = state.selection.size; state.selection.clear(); await refresh(); render(); toast(`${n} card${n === 1 ? '' : 's'} → ${esc(stLabel(s))}`); },
   export: () => openExport(),
+  reexport: () => { closeLayer(); openExport(true); },
   'copy-md': () => copyMarkdown(),
   'download-zip': () => downloadZip(),
   'new-project': () => openProjectEditor(null),
