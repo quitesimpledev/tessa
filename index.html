@@ -752,6 +752,7 @@ class LocalStore {
     const bs = await this.listBatches(); const i = bs.findIndex(x => x.id === batchId); if (i < 0) return null;
     bs[i] = { ...bs[i], ...patch }; this.s('batches', bs); return bs[i];
   }
+  async changeSignature() { const cs = this.g('cards', []); return `${cs.length}|${cs.reduce((m, c) => c.updated_at > m ? c.updated_at : m, '')}|${this.g('batches', []).length}`; }
   seeded() { return this.g('seedv', 0) >= SEED_V; }
   async seed() {
     const P = (id, name, prefix, repo, content_path, agent_notes, seq, stage = 'alpha', health = []) => ({ id, name, prefix, repo, content_path, agent_notes, seq, active: true, stage, health });
@@ -931,6 +932,15 @@ class SupabaseStore {
   async createBatch(b) { return this.q(this.sb.from('batches').insert(b).select().single()); }
   async saveReport(batchId, report) { return this.q(this.sb.from('batches').update({ report, reported_at: new Date().toISOString() }).eq('id', batchId).select().single()); }
   async updateBatch(batchId, patch) { return this.q(this.sb.from('batches').update(patch).eq('id', batchId).select().single()); }
+  /* Cheap "did anything change?" probe for the live poll: newest card timestamp + card count + batch count. */
+  async changeSignature() {
+    const [{ count: n }, latest, { count: nb }] = await Promise.all([
+      this.sb.from('cards').select('id', { count: 'exact', head: true }),
+      this.q(this.sb.from('cards').select('updated_at').order('updated_at', { ascending: false }).limit(1)),
+      this.sb.from('batches').select('id', { count: 'exact', head: true }),
+    ]);
+    return `${n}|${latest && latest[0] ? latest[0].updated_at : ''}|${nb}`;
+  }
   /* auth — reviewer only; filers never sign in */
   async currentReviewer() {
     const { data: { session } } = await this.sb.auth.getSession(); if (!session || !session.user || !session.user.email) return null;
@@ -960,7 +970,7 @@ const state = {
   collapsed: new Set(),     // app groups folded on the Review screen (this session only)
   cache: { projects: [], cards: [], index: [], shotCounts: {}, attCounts: {}, batches: [] },
 };
-function persistUi() { lsSet('tessa.ui.project', state.projectId); lsSet('tessa.ui.me', state.me); if (DEMO) lsSet('tessa.ui.reviewer', state.reviewer); }
+function persistUi() { lsSet('tessa.ui.project', state.projectId); lsSet('tessa.ui.me', state.me); lsSet('tessa.ui.view', state.view); lsSet('tessa.ui.rf', state.rf); if (DEMO) lsSet('tessa.ui.reviewer', state.reviewer); }
 async function refresh() {
   state.cache.projects = await store.listProjects();
   // No default project. A first-time filer picks one (the chooser page) rather than
@@ -978,7 +988,9 @@ async function refresh() {
   state.cache.shotCounts = await store.shotCounts();
   state.cache.attCounts = await store.attCounts();
   state.cache.batches = state.reviewer ? await store.listBatches() : [];
+  liveSig = null; // our own change; re-baseline so the poll doesn't reload again for it
 }
+let liveSig = null, liveBusy = false, livePending = false;   // live-poll state (see Live updates)
 const proj = id => state.cache.projects.find(p => p.id === id);
 const isOpen = s => !['verified', 'rejected'].includes(s);
 const openCount = pid => state.cache.index.filter(c => c.project_id === pid && isOpen(c.status)).length;
@@ -1650,6 +1662,7 @@ async function savePassword() {
 }
 async function finishSignin(email) {
   state.reviewer = email; state.view = 'review'; persistUi(); closeLayer(); await refresh(); render(); toast('Signed in as admin');
+  if (!liveStarted) startLive();
 }
 async function signOut() {
   if (!DEMO) { try { await store.signOut(); } catch (e) { /* session is gone either way */ } }
@@ -1862,16 +1875,16 @@ async function downloadZip() {
 
 /* ---------- Actions ---------- */
 const actions = {
-  view: el => { state.view = el.dataset.v; if (state.view !== 'review') state.selection.clear(); closeAll(); $$('.pop').forEach(p => p.remove()); render(); },
+  view: el => { state.view = el.dataset.v; if (state.view !== 'review') state.selection.clear(); closeAll(); $$('.pop').forEach(p => p.remove()); persistUi(); render(); },
   'proj-menu': () => toggleProjPop(),
   'rf-proj-menu': () => toggleReviewProjPop(),
-  'rf-pick': el => { state.rf.project = el.dataset.id; state.selection.clear(); render(); },
+  'rf-pick': el => { state.rf.project = el.dataset.id; state.selection.clear(); persistUi(); render(); },
   'pick-project': async el => { state.projectId = el.dataset.id; state.filter.status = 'open'; state.q.cards = ''; state.chooserAll = false; persistUi();
     lsSet('tessa.ui.recent', [state.projectId, ...lsGet('tessa.ui.recent', []).filter(id => id !== state.projectId)].slice(0, 4));
     $$('.pop').forEach(p => p.remove()); await refresh(); render(); },
   'chooser-all': () => { state.chooserAll = true; render(); const i = $('#main .card-search'); if (i) i.focus(); },
   filter: el => { state.filter.status = el.value; render(); },
-  rf: el => { state.rf[el.dataset.g] = el.dataset.v; render(); },
+  rf: el => { state.rf[el.dataset.g] = el.dataset.v; persistUi(); render(); },
   'new-card': () => { if (!state.me) { openEditMe(openNewCard); return; } openNewCard(); },
   open: el => openCard(el.dataset.id),
   'set-type': el => { draft.type = el.dataset.v; $$('#seg-type button').forEach(b => b.classList.toggle('on', b.dataset.v === draft.type)); $('#type-fields').innerHTML = typeFieldsHtml(draft.type, draft.editCard || {}); $('#f-where').placeholder = WHERE_PH[draft.type]; $('#f-desc-opt').textContent = draft.type === 'other' ? '' : 'optional'; },
@@ -1961,9 +1974,38 @@ document.addEventListener('paste', e => {
   if (items.length) { e.preventDefault(); addFiles(items.map(i => i.getAsFile())); }
 });
 
+/* ---------- Live updates ----------
+   No websockets, no framework: every 15 s while the tab is visible (and the moment
+   it regains focus) ask the database for a tiny change signature. If it moved,
+   reload the cache and re-render — unless a form is being typed in, in which case
+   wait until it closes. Cards someone else files show up without a reload. */
+async function liveTick() {
+  if (liveBusy || document.hidden) return; liveBusy = true;
+  try {
+    const sig = await store.changeSignature();
+    if (liveSig === null) { liveSig = sig; return; }
+    if (sig === liveSig) return;
+    liveSig = sig;
+    await refresh();
+    const typing = draft || (document.activeElement && document.activeElement.matches('#main input, #main textarea') && document.activeElement.value);
+    if (typing) { livePending = true; return; }
+    render();
+  } catch (e) { /* offline or paused database — try again next tick */ }
+  finally { liveBusy = false; }
+}
+let liveStarted = false;
+function startLive() {
+  if (DEMO || liveStarted) return; liveStarted = true;
+  setInterval(liveTick, 15000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) liveTick(); });
+  window.addEventListener('focus', liveTick);
+  // a form closed while an update was waiting: catch up now
+  document.addEventListener('click', () => { if (livePending && !draft) { livePending = false; render(); } }, true);
+}
+
 /* ---------- Passphrase gate (live mode only) ---------- */
 function renderKeyGate(wrong) {
-  $('#app').innerHTML = `<header class="topbar"><a class="wordmark" href="#"><span>Tessa<span class="dot">.</span></span></a></header>
+  $('#app').innerHTML = `<header class="topbar"><a class="wordmark" href="#"><span>Tessa<span class="dot">.</span></span></a><div class="topbar-right"><button class="btn ghost sm" data-act="signin">${ic('user')}Admin sign in</button></div></header>
     <main class="page" style="max-width:440px;padding-top:72px"><form id="key-form" class="triage" style="gap:14px" novalidate>
       <div><div class="eyebrow">Team passphrase</div><div style="font-size:13px;color:var(--fg-2);margin-top:6px;line-height:1.5">Tessa is for the editing team. You only type this once on each device.</div></div>
       <div class="fld ${wrong ? 'err' : ''}"><label for="k-in" class="sr">Passphrase</label><input type="password" id="k-in" placeholder="Passphrase" autofocus autocomplete="off"><div class="errmsg">That's not it — check with whoever gave you the link.</div></div>
@@ -1985,15 +2027,17 @@ window.addEventListener('unhandledrejection', e => { const m = (e.reason && e.re
     if (!store.seeded()) await store.seed();
   } else {
     state.reviewer = null;
-    try { await store.init(); if (!(await store.hasKey())) { renderKeyGate(false); return; } state.reviewer = await store.currentReviewer(); }
+    try { await store.init(); state.reviewer = await store.currentReviewer(); if (!state.reviewer && !(await store.hasKey())) { renderKeyGate(false); return; } }
     catch (e) { $('#app').innerHTML = `<div class="empty" style="padding-top:80px"><b>Tessa can't reach its database</b>${esc(e.message)}<br>Reload to try again.</div>`; return; }
     store.sb.auth.onAuthStateChange(async (ev) => {
       if (ev === 'PASSWORD_RECOVERY') { openSetPassword(); return; }
       if (ev === 'SIGNED_IN' && !state.reviewer && !layerStack.length) { const who = await store.currentReviewer(); if (who) { state.reviewer = who; state.view = 'review'; await refresh(); render(); toast('Signed in as admin'); } }
     });
   }
+  if (state.reviewer) { const v = lsGet('tessa.ui.view', 'cards'); if (['cards', 'review', 'batches', 'projects'].includes(v)) state.view = v; const rf = lsGet('tessa.ui.rf', null); if (rf && typeof rf === 'object') state.rf = { ...state.rf, ...rf }; }
   await refresh(); render();
   if (!DEMO && store.recovery) { store.recovery = false; openSetPassword(); }
+  startLive();
 })();
 </script>
 </body>
