@@ -531,11 +531,12 @@ const STATUSES = [
   { id: 'verified',    label: 'Verified' },
   { id: 'rejected',    label: 'Rejected' },
 ];
+/* 'other' is the database value; it's shown as General and is the default — most cards are. */
 const TYPES = [
+  { id: 'other',   label: 'General' },
   { id: 'content', label: 'Content' },
   { id: 'bug',     label: 'Bug' },
   { id: 'feature', label: 'Feature' },
-  { id: 'other',   label: 'Other' },
 ];
 const PRIORITIES = [
   { id: 'p1', label: 'P1', sub: 'Blocking' },
@@ -1295,7 +1296,7 @@ async function openEditCard(id) {
 function openCardForm(card, shots = [], atts = []) {
   const p = proj(card ? card.project_id : state.projectId); if (!p) return;
   const edit = !!card; const c = card || {};
-  draft = { type: c.type || 'content', priority: c.priority || 'p2', shots: shots.slice(), files: atts.slice(), editId: edit ? c.id : null, editCard: edit ? c : null };
+  draft = { type: c.type || 'other', priority: c.priority || 'p2', shots: shots.slice(), files: atts.slice(), editId: edit ? c.id : null, editCard: edit ? c : null };
   const el = openLayer('drawer', `
     <div class="drawer-head"><h4>${edit ? `Edit <span class="idm" style="font-size:12px;color:var(--fg-1)">${esc(c.display_id)}</span>` : 'New card'} <span class="prefix">${esc(p.prefix)}</span><span class="muted" style="font-weight:500">${esc(p.name)}</span></h4>${headBtn}</div>
     <form class="drawer-body" id="card-form" novalidate>
@@ -1305,7 +1306,7 @@ function openCardForm(card, shots = [], atts = []) {
       <div class="fld" data-f="title"><label for="f-title">Title</label><input type="text" id="f-title" name="title" value="${esc(c.title || '')}" placeholder="One line: what's wrong" autofocus autocomplete="off"><div class="errmsg">Give it a title.</div></div>
       <div class="fld" data-f="where"><label for="f-where">Where</label><input type="text" id="f-where" name="where" value="${esc(c.where || '')}" placeholder="${esc(WHERE_PH[draft.type])}" autocomplete="off"><div class="help">Enough to find it without asking you. Card number, level, story, URL.</div><div class="errmsg">Say where you saw it — a card number, level, story, or URL.</div></div>
       <div id="type-fields">${typeFieldsHtml(draft.type, c)}</div>
-      <div class="fld"><label for="f-desc">Details<span class="opt">optional</span></label><textarea id="f-desc" name="description" placeholder="Anything else that helps — what you expected, who noticed, how often.">${esc(c.description || '')}</textarea></div>
+      <div class="fld" data-f="description"><label for="f-desc">Details<span class="opt" id="f-desc-opt">${draft.type === 'other' ? '' : 'optional'}</span></label><textarea id="f-desc" name="description" rows="6" style="min-height:140px" placeholder="What's wrong, what you'd expect instead, anything that helps.">${esc(c.description || '')}</textarea><div class="errmsg">Describe it — a General card is just its details.</div></div>
       <div class="fld"><label>Priority</label><div class="seg grow" id="seg-pri">${PRIORITIES.map(q => `<button type="button" class="${q.id === draft.priority ? 'on' : ''}" data-act="set-pri" data-v="${q.id}">${q.label}<span class="sub">${q.sub}</span></button>`).join('')}</div></div>
       <div class="fld"><label>Screenshots<span class="opt">optional · up to ${MAX_SHOTS}</span></label>
         <div class="thumbs" id="draft-thumbs" hidden></div>
@@ -1404,6 +1405,7 @@ async function submitCard() {
   need('title', v('title')); need('where', v('where')); if (!draft.editId) need('me', v('filer_name'));
   if (draft.type === 'content') { need('current_text', v('current_text')); need('proposed_text', v('proposed_text')); }
   if (draft.type === 'bug') need('steps', v('steps'));
+  if (draft.type === 'other') need('description', v('description'));
   if (!ok) { const first = form.querySelector('.fld.err input, .fld.err textarea'); if (first) first.focus(); return; }
   const fields = { type: draft.type, priority: draft.priority, title: v('title'), where: v('where'), description: v('description') };
   if (draft.type === 'content') { fields.current_text = v('current_text'); fields.proposed_text = v('proposed_text'); }
@@ -1626,7 +1628,7 @@ async function buildMarkdown(group, batchNo, exporter) {
   for (const c of group.cards) {
     const shots = await store.getShots(c.id);
     const atts = await store.getAtts(c.id);
-    L.push(`## ${c.display_id} · ${c.priority.toUpperCase()} · ${c.type}`);
+    L.push(`## ${c.display_id} · ${c.priority.toUpperCase()} · ${tyLabel(c.type).toLowerCase()}`);
     L.push(`**Where:** ${c.where}`); L.push(`**Title:** ${c.title}`);
     if (c.moved_from) L.push(`**Previously:** ${c.moved_from} (moved to this project by the reviewer)`);
     if (c.type === 'content') { L.push(`**Current text:** ${c.current_text}`); L.push(`**Proposed text:** ${c.proposed_text}`); }
@@ -1644,8 +1646,17 @@ async function buildMarkdown(group, batchNo, exporter) {
   L.push('Instead of `done` use `skipped — <why>` or `blocked — <what you need>` (both send the card back to the reviewer as Needs info) or `rejected — <why>`.', '');
   return L.join('\n');
 }
+/* File names carry the app and the batch: tessa-lirica-b7.zip / .md. The batch number
+   stays — it's what the report-back is matched against, and it keeps two exports of
+   the same app from overwriting each other in Downloads. */
+const slug = str => String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'app';
+function exportBase(groups, batchNo) {
+  const names = groups.map(g => slug(g.project.name));
+  const apps = names.length <= 3 ? names.join('+') : `${names.length}-apps`;
+  return `tessa-${apps}-b${batchNo}`;
+}
 async function buildFiles(groups, batchNo, exporter) {
-  const files = []; for (const g of groups) files.push({ name: `tessa-batch-${batchNo}-${g.project.prefix}.md`, md: await buildMarkdown(g, batchNo, exporter), group: g });
+  const files = []; for (const g of groups) files.push({ name: `tessa-${slug(g.project.name)}-b${batchNo}.md`, md: await buildMarkdown(g, batchNo, exporter), group: g });
   return files;
 }
 async function openExport(force = false) {
@@ -1730,7 +1741,7 @@ async function downloadZip() {
     }
   }
   const blob = await zip.generateAsync({ type: 'blob' });
-  await saveFile(`tessa-batch-${b.no}.zip`, blob);
+  await saveFile(`${exportBase(x.groups, b.no)}.zip`, blob);
   btn.disabled = false; btn.innerHTML = `${ic('download')}Download zip`;
   await finishExport(b, x);
 }
@@ -1748,7 +1759,7 @@ const actions = {
   rf: el => { state.rf[el.dataset.g] = el.dataset.v; render(); },
   'new-card': () => { if (!state.me) { openEditMe(openNewCard); return; } openNewCard(); },
   open: el => openCard(el.dataset.id),
-  'set-type': el => { draft.type = el.dataset.v; $$('#seg-type button').forEach(b => b.classList.toggle('on', b.dataset.v === draft.type)); $('#type-fields').innerHTML = typeFieldsHtml(draft.type, draft.editCard || {}); $('#f-where').placeholder = WHERE_PH[draft.type]; },
+  'set-type': el => { draft.type = el.dataset.v; $$('#seg-type button').forEach(b => b.classList.toggle('on', b.dataset.v === draft.type)); $('#type-fields').innerHTML = typeFieldsHtml(draft.type, draft.editCard || {}); $('#f-where').placeholder = WHERE_PH[draft.type]; $('#f-desc-opt').textContent = draft.type === 'other' ? '' : 'optional'; },
   'edit-card': el => openEditCard(el.dataset.id),
   'toggle-original': () => { const b = $('#orig-body'); b.hidden = !b.hidden; const btn = $('#orig-btn'); btn.innerHTML = btn.innerHTML.replace(b.hidden ? 'Hide' : 'Show', b.hidden ? 'Show' : 'Hide'); },
   'set-pri': el => { draft.priority = el.dataset.v; $$('#seg-pri button').forEach(b => b.classList.toggle('on', b.dataset.v === draft.priority)); },
