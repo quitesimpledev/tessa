@@ -1269,16 +1269,24 @@ const REPORT_WORDS = { done: 'implemented', fixed: 'implemented', implemented: '
    start with a card ID continues the previous card's note (so a two-line `blocked —`
    explanation survives), headings and table rules are skipped, and anything before
    the first card line is preamble, counted but not shown as an error. */
-const ID_LINE = /^(?:[-*•|]\s*)?\**`?([A-Za-z]{2,4}-\d+)`?\**\s*(?:[—–\-:|]+\s*)\**([A-Za-z_]+)\**\s*(?:[—–\-:|]+\s*(.*?))?\s*\|?\s*$/;
+/* Lenient on purpose: anything non-alphabetic may sit before the ID (bullets, numbering,
+   bold markers, table pipes), anything non-alphabetic may separate ID / word / note (any
+   dash, colon, pipe, odd spaces). Invisible characters that ride along when copying from
+   a rendered chat are stripped first. */
+const ID_LINE = /^(?:[^A-Za-z0-9]*\d{1,3}[.)])?[^A-Za-z0-9]*([A-Za-z]{2,4}-\d+)[^A-Za-z]+([A-Za-z_]+)(?:[^A-Za-z0-9]+(.*?))?\s*\|?\s*$/;
+const cleanLine = raw => String(raw).replace(/[\u200b-\u200f\u2060\ufeff]/g, '').replace(/[\u00a0\u202f\u2009]/g, ' ').trim();
 function parseReport(text, batch) {
-  const out = []; let preamble = 0;
-  for (const raw of String(text || '').split(/\r?\n/)) {
-    const line = raw.trim(); if (!line) continue;
+  const out = []; let preamble = 0; const unmatched = [];
+  // A code block copied from a chat can arrive flattened onto one line: re-split before each "ID — word".
+  const words = Object.keys(REPORT_WORDS).join('|');
+  const src = String(text || '').replace(new RegExp(`[ \\t]+(?=[A-Za-z]{2,4}-\\d+\\s*[^A-Za-z0-9\\s]\\s*(?:${words})\\b)`, 'gi'), '\n');
+  for (const raw of src.split(/\r?\n|\r/)) {
+    const line = cleanLine(raw); if (!line || /^`{3,}\w*$/.test(line)) continue;   // blank, or a ``` fence
     const m = line.match(ID_LINE);
     if (!m) {
       if (/^(#|---|\|?\s*-{2,}\s*\|)/.test(line)) continue;                 // heading or table rule
       const prev = out[out.length - 1];
-      if (!prev) { preamble++; continue; }                                     // text before the first card line
+      if (!prev) { preamble++; unmatched.push(line); continue; }              // text before the first card line
       const cont = line.replace(/^[-*•|]\s*/, '').replace(/\|\s*$/, '').trim();
       if (prev.ok) prev.note = (prev.note ? prev.note + '\n' : '') + cont; else prev.raw += '\n' + cont;
       continue;
@@ -1290,7 +1298,8 @@ function parseReport(text, batch) {
     if (!status) { out.push({ raw: line, ok: false, id, why: `"${word}" isn't one of done · skipped · blocked · rejected` }); continue; }
     out.push({ raw: line, ok: true, id, card, status, note, inBatch: batch.card_ids.includes(card.id), same: card.status === status });
   }
-  out.preamble = preamble;
+  out.preamble = preamble; out.unmatched = unmatched;
+  if (!out.length && unmatched.length) console.warn('Tessa report parser: no card lines in', unmatched);
   return out;
 }
 async function openBatch(id) {
@@ -1317,7 +1326,7 @@ async function previewReport(batchId) {
   const b = await store.getBatch(batchId); const el = layerStack[layerStack.length - 1].el;
   const text = $('#rp-text', el).value; const ch = parseReport(text, b);
   const host = $('#rp-preview', el);
-  if (!ch.length) { host.innerHTML = `<div class="callout warn">${ch.preamble ? 'No card lines found — each card needs its own line starting with its ID, like <span class="mono">TRV-002 — done — what changed</span>.' : 'Nothing to read — paste the report first.'}</div>`; return; }
+  if (!ch.length) { host.innerHTML = `<div class="callout warn">${ch.preamble ? `No card lines found — each card needs its own line starting with its ID, like <span class="mono">TRV-002 — done — what changed</span>.<div class="help" style="margin-top:6px">First line seen: <span class="mono">${esc((ch.unmatched[0] || '').slice(0, 120))}</span></div>` : 'Nothing to read — paste the report first.'}</div>`; return; }
   const good = ch.filter(x => x.ok);
   host.innerHTML = `<div class="eyebrow" style="margin-bottom:8px">What will change</div><div class="list">${ch.map(x => x.ok
     ? `<div class="row" style="cursor:default;min-height:44px;padding:8px 12px"><span class="idm">${esc(x.id)}</span><div class="main"><div class="title" style="font-weight:400">${badge(x.card.status)} <span class="muted">→</span> ${badge(x.status)}${x.same ? ' <span class="muted">(already)</span>' : ''}${x.inBatch ? '' : ' <span class="muted">· not in this batch</span>'}</div>${x.note ? `<div class="sub" style="white-space:pre-wrap">${esc(x.note)}</div>` : '<div class="sub muted">no detail — the card will say so</div>'}</div><span></span></div>`
