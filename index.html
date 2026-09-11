@@ -322,6 +322,17 @@ svg.i.lg { width: 18px; height: 18px; }
 .grp-x { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; color: var(--fg-3); margin-left: 2px; }
 .grp-x:hover { background: var(--accent-soft); color: var(--accent-text); }
 .brow.cancelled .title, .brow.cancelled .sub { color: var(--fg-4); text-decoration: line-through; }
+.grp-hd { display: flex; align-items: center; gap: 10px; padding: 9px 18px; background: var(--bg); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); cursor: pointer; }
+.grp-hd:first-of-type { border-top: 0; }
+.grp-hd:hover { background: var(--bg-3); }
+.grp-hd .gname { font-weight: 600; color: var(--fg-1); font-size: 13.5px; }
+.grp-hd .gcount { margin-left: auto; font-size: 12px; color: var(--fg-3); white-space: nowrap; }
+.grp-hd .gcount b { color: var(--danger); font-weight: 600; }
+.grp-hd .gchev { color: var(--fg-3); display: inline-grid; transition: transform .15s; }
+.grp-hd.closed .gchev { transform: rotate(-90deg); }
+.grp-hd.closed { border-bottom: 1px solid var(--border); }
+.table.grouped .thead { display: none; }
+.table.grouped .trow .proj { visibility: hidden; }
 .prow:last-child { border-bottom: 0; }
 .prow:hover { background: var(--bg-3); }
 .prow .name { font-weight: 500; color: var(--fg-1); }
@@ -464,6 +475,10 @@ pre.md .fh { color: var(--accent-text); }
 .card-search { width: 100%; max-width: 340px; height: 34px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg-1); color: var(--fg-1); font: inherit; font-size: 13px; }
 .card-search:focus { outline: none; border-color: var(--accent); }
 .pop-list { max-height: min(60vh, 440px); overflow-y: auto; }
+.filter-sel.picker { display: inline-flex; align-items: center; gap: 8px; padding: 0 10px 0 10px; appearance: none; background-image: none; }
+.filter-sel.picker .n { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); font-weight: 500; }
+.filter-sel.picker svg { color: var(--fg-3); }
+.pop .item .n b { font-weight: 600; }
 .filter-sel { height: 28px; padding: 0 28px 0 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-1); font: inherit; font-size: 12px; font-weight: 600; max-width: 320px; }
 .pop .hd { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--fg-4); padding: 6px 10px 4px; }
 
@@ -942,6 +957,7 @@ const state = {
   rf: { project: 'all', status: 'open', type: 'all', pri: 'all' },
   q: { cards: '', review: '', chooser: '' },   // search boxes survive re-renders
   selection: new Set(),
+  collapsed: new Set(),     // app groups folded on the Review screen (this session only)
   cache: { projects: [], cards: [], index: [], shotCounts: {}, attCounts: {}, batches: [] },
 };
 function persistUi() { lsSet('tessa.ui.project', state.projectId); lsSet('tessa.ui.me', state.me); if (DEMO) lsSet('tessa.ui.reviewer', state.reviewer); }
@@ -1119,13 +1135,18 @@ function rowHtml(c) {
 }
 
 /* ---------- Review (reviewer view) ---------- */
-function renderReview() {
+/* The Review screen's card set after the project/status filters, priority first. */
+function reviewCards() {
   const rf = state.rf;
   let cards = state.cache.cards.slice();
   if (rf.project !== 'all') cards = cards.filter(c => c.project_id === rf.project);
   if (rf.status === 'open') cards = cards.filter(c => isOpen(c.status)); else if (rf.status !== 'all') cards = cards.filter(c => c.status === rf.status);
   const order = { p1: 0, p2: 1, p3: 2 };
-  cards.sort((a, b) => (order[a.priority] - order[b.priority]) || b.created_at.localeCompare(a.created_at));
+  return cards.sort((a, b) => (order[a.priority] - order[b.priority]) || b.created_at.localeCompare(a.created_at));
+}
+function renderReview() {
+  const rf = state.rf;
+  const cards = reviewCards();
   const chip = (grp, id, label, n) => `<button class="chip ${rf[grp] === id ? 'on' : ''}" data-act="rf" data-g="${grp}" data-v="${id}">${esc(label)}${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
   const allOpen = state.cache.cards.filter(c => isOpen(c.status));
   const sel = state.selection;
@@ -1135,14 +1156,12 @@ function renderReview() {
       <div><h1>Review</h1><div class="sub"><span id="shown-n">${cards.length}</span> shown · ${allOpen.length} open across ${state.cache.projects.filter(p => p.active).length} projects</div></div>
       <div class="actions"><button class="btn" data-act="select-visible">${allVisibleSel ? 'Clear selection' : 'Select all shown'}</button></div>
     </div>
-    <div class="filters">${(() => { const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es')); const cnt = p => openCount(p.id);
-      const withOpen = ps.filter(p => cnt(p) > 0), rest = ps.filter(p => cnt(p) === 0);
-      const opt = p => `<option value="${p.id}" ${rf.project === p.id ? 'selected' : ''}>${esc(p.name)}${cnt(p) ? ` (${cnt(p)} open)` : ''}</option>`;
-      return `<select class="filter-sel" data-act="rf-project" aria-label="Project"><option value="all" ${rf.project === 'all' ? 'selected' : ''}>All projects · ${allOpen.length} open</option>${withOpen.length ? `<optgroup label="With open cards">${withOpen.map(opt).join('')}</optgroup>` : ''}${rest.length ? `<optgroup label="Nothing open">${rest.map(opt).join('')}</optgroup>` : ''}</select>`; })()}<span class="gap"></span>${chip('status', 'open', 'Open')}${STATUSES.map(s => chip('status', s.id, s.label)).join('')}${chip('status', 'all', 'Everything')}</div>
+    <div class="filters">${(() => { const cur = rf.project === 'all' ? null : proj(rf.project);
+      return `<span class="proj-wrap"><button class="filter-sel picker" data-act="rf-proj-menu" aria-haspopup="listbox">${cur ? `<span class="prefix">${esc(cur.prefix)}</span>${esc(cur.name)}<span class="n">${openCount(cur.id)} open</span>` : `All projects<span class="n">${allOpen.length} open</span>`}${ic('chev')}</button><div id="rf-proj-pop"></div></span>`; })()}<span class="gap"></span>${chip('status', 'open', 'Open')}${STATUSES.map(s => chip('status', s.id, s.label)).join('')}${chip('status', 'all', 'Everything')}</div>
     <div class="toolbar"><input class="card-search" type="search" placeholder="Search — or narrow: p1, bug, marta, TRV\u2026" autocomplete="off"></div>
-    <div class="table">
+    <div class="table ${rf.project === 'all' ? 'grouped' : ''}">
       <div class="trow thead"><span></span><span>ID</span><span>Card</span><span>App</span><span>Pri</span><span>Status</span><span>Filed</span></div>
-      ${cards.length ? cards.map(trowHtml).join('') : `<div class="empty"><b>Nothing matches</b>Loosen a filter.</div>`}
+      ${!cards.length ? `<div class="empty"><b>Nothing matches</b>Loosen a filter.</div>` : rf.project !== 'all' ? cards.map(trowHtml).join('') : groupedRows(cards)}
     </div>
     ${sel.size ? `<div class="selbar">
       <span class="cnt">${sel.size} selected</span><span class="sep"></span>
@@ -1150,6 +1169,22 @@ function renderReview() {
       <button class="btn primary" data-act="export">${ic('download')}Export…</button>
       <button class="icon-btn" data-act="clear-sel" title="Clear selection">${ic('x')}</button>
     </div>` : ''}`;
+}
+/* All-apps view: one section per app, most urgent first (open P1s, then open count).
+   Open by default; the header collapses it for the session. A single-app view stays a flat table. */
+function groupedRows(cards) {
+  const by = new Map(); for (const c of cards) { if (!by.has(c.project_id)) by.set(c.project_id, []); by.get(c.project_id).push(c); }
+  const urgency = pid => { const all = state.cache.cards.filter(c => c.project_id === pid && isOpen(c.status)); return [all.filter(c => c.priority === 'p1').length, all.length]; };
+  const groups = Array.from(by.entries()).map(([pid, cs]) => ({ p: proj(pid) || { id: pid, name: '?', prefix: '' }, cs, u: urgency(pid) }))
+    .sort((a, b) => (b.u[0] - a.u[0]) || (b.u[1] - a.u[1]) || a.p.name.localeCompare(b.p.name, 'es'));
+  return groups.map(g => {
+    const closed = state.collapsed.has(g.p.id); const allSel = g.cs.every(c => state.selection.has(c.id)); const p1 = g.cs.filter(c => c.priority === 'p1').length;
+    return `<div class="grp-hd ${closed ? 'closed' : ''}" data-act="grp-toggle" data-pid="${g.p.id}" role="button" tabindex="0">
+      <span class="cb ${allSel ? 'on' : ''}" data-act="grp-sel" data-pid="${g.p.id}" role="checkbox" aria-checked="${allSel}" title="Select all in ${esc(g.p.name)}">${allSel ? ic('check') : ''}</span>
+      <span class="prefix">${esc(g.p.prefix)}</span><span class="gname">${esc(g.p.name)}</span>${stageBadge(g.p)}
+      <span class="gcount">${g.cs.length} card${g.cs.length === 1 ? '' : 's'}${p1 ? ` · <b>${p1} P1</b>` : ''}${g.u[1] !== g.cs.length ? ` · ${g.u[1]} open` : ''}</span>
+      <span class="gchev">${ic('chev')}</span>
+    </div>${closed ? '' : g.cs.map(trowHtml).join('')}`; }).join('');
 }
 function trowHtml(c) {
   const p = proj(c.project_id) || {}; const on = state.selection.has(c.id);
@@ -1324,6 +1359,24 @@ function toggleProjPop() {
     return `<button class="item ${p.id === state.projectId ? 'on' : ''}" data-act="pick-project" data-id="${p.id}" data-search="${esc((p.name + ' ' + p.prefix).toLowerCase())}"><span class="prefix">${esc(p.prefix)}</span>${esc(p.name)}<span class="n">${n} open</span></button>`; }).join('')}</div></div>`;
   const inp = $('#proj-search');
   inp.addEventListener('input', () => { const q = inp.value.trim().toLowerCase(); $$('.pop-list .item', host).forEach(b => { b.hidden = !!q && !b.dataset.search.includes(q); }); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const first = $$('.pop-list .item', host).find(b => !b.hidden); if (first) first.click(); } });
+  if (window.innerWidth > 720) inp.focus();
+}
+
+/* Review screen's app picker: same panel as the filer's, plus "All projects" and P1 counts. */
+function toggleReviewProjPop() {
+  const host = $('#rf-proj-pop'); if (!host) return;
+  if (host.innerHTML) { host.innerHTML = ''; return; }
+  const ps = state.cache.projects.filter(p => p.active).slice().sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  const p1 = pid => state.cache.cards.filter(c => c.project_id === pid && isOpen(c.status) && c.priority === 'p1').length;
+  const withOpen = ps.filter(p => openCount(p.id) > 0).sort((a, b) => (p1(b.id) - p1(a.id)) || (openCount(b.id) - openCount(a.id)) || a.name.localeCompare(b.name, 'es')), rest = ps.filter(p => openCount(p.id) === 0);
+  const allOpen = state.cache.cards.filter(c => isOpen(c.status)).length;
+  const item = p => `<button class="item ${p.id === state.rf.project ? 'on' : ''} ${openCount(p.id) ? '' : 'dim'}" data-act="rf-pick" data-id="${p.id}" data-search="${esc((p.name + ' ' + p.prefix).toLowerCase())}"><span class="prefix">${esc(p.prefix)}</span>${esc(p.name)}<span class="n">${p1(p.id) ? `<b style="color:var(--danger)">${p1(p.id)} P1</b> · ` : ''}${openCount(p.id)} open</span></button>`;
+  host.innerHTML = `<div class="pop pop-proj"><input class="pop-search" id="rf-proj-search" type="search" placeholder="Type to find…" autocomplete="off">
+    <button class="item ${state.rf.project === 'all' ? 'on' : ''}" data-act="rf-pick" data-id="all" data-search="all projects">${ic('layers')}All projects<span class="n">${allOpen} open</span></button><hr>
+    <div class="pop-list">${withOpen.length ? `<div class="hd">With open cards</div>${withOpen.map(item).join('')}` : ''}${rest.length ? `<div class="hd">Nothing open</div>${rest.map(item).join('')}` : ''}</div></div>`;
+  const inp = $('#rf-proj-search');
+  inp.addEventListener('input', () => { const q = inp.value.trim().toLowerCase(); $$('.item', host).forEach(b => { b.hidden = !!q && !b.dataset.search.includes(q); }); $$('.hd', host).forEach(h => { h.hidden = !!q; }); });
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const first = $$('.pop-list .item', host).find(b => !b.hidden); if (first) first.click(); } });
   if (window.innerWidth > 720) inp.focus();
 }
@@ -1811,7 +1864,8 @@ async function downloadZip() {
 const actions = {
   view: el => { state.view = el.dataset.v; if (state.view !== 'review') state.selection.clear(); closeAll(); $$('.pop').forEach(p => p.remove()); render(); },
   'proj-menu': () => toggleProjPop(),
-  'rf-project': el => { state.rf.project = el.value; state.selection.clear(); render(); },
+  'rf-proj-menu': () => toggleReviewProjPop(),
+  'rf-pick': el => { state.rf.project = el.dataset.id; state.selection.clear(); render(); },
   'pick-project': async el => { state.projectId = el.dataset.id; state.filter.status = 'open'; state.q.cards = ''; state.chooserAll = false; persistUi();
     lsSet('tessa.ui.recent', [state.projectId, ...lsGet('tessa.ui.recent', []).filter(id => id !== state.projectId)].slice(0, 4));
     $$('.pop').forEach(p => p.remove()); await refresh(); render(); },
@@ -1862,6 +1916,8 @@ const actions = {
   'save-triage': async el => { const body = el.closest('.drawer-body'); await store.updateCard(el.dataset.id, { status: $('#t-status').value, type: $('#t-type').value, priority: body.dataset.pri, reviewer_note: $('#t-note').value.trim() }); closeLayer(); await refresh(); render(); toast('Saved'); },
   'delete-card': async el => { const c = await store.getCard(el.dataset.id); if (!confirm(`Delete ${c.display_id}? This can't be undone.`)) return; await store.deleteCard(c.id); state.selection.delete(c.id); closeLayer(); await refresh(); render(); toast(`${esc(c.display_id)} deleted`); },
   'toggle-sel': (el, e) => { e.stopPropagation(); const id = el.dataset.id; state.selection.has(id) ? state.selection.delete(id) : state.selection.add(id); render(); },
+  'grp-toggle': el => { const id = el.dataset.pid; state.collapsed.has(id) ? state.collapsed.delete(id) : state.collapsed.add(id); render(); },
+  'grp-sel': (el, e) => { e.stopPropagation(); const mine = reviewCards().filter(c => c.project_id === el.dataset.pid).map(c => c.id); if (mine.length && mine.every(id => state.selection.has(id))) mine.forEach(id => state.selection.delete(id)); else mine.forEach(id => state.selection.add(id)); render(); },
   'select-visible': () => { const rows = $$('.trow[data-id]'); const ids = rows.map(r => r.dataset.id); if (ids.every(id => state.selection.has(id))) state.selection.clear(); else ids.forEach(id => state.selection.add(id)); render(); },
   'clear-sel': () => { state.selection.clear(); render(); },
   'row-status': async (el, e) => { e.stopPropagation(); await store.updateCard(el.dataset.id, { status: el.value }); await refresh(); render(); toast(`${esc((await store.getCard(el.dataset.id)).display_id)} → ${esc(stLabel(el.value))}`); },
@@ -1886,7 +1942,7 @@ document.addEventListener('input', e => {
 document.addEventListener('click', e => {
   const closeEl = e.target.closest('[data-close]'); if (closeEl) { e.preventDefault(); closeLayer(); return; }
   const el = e.target.closest('[data-act]');
-  if (!el) { if (!e.target.closest('.pop') && !e.target.closest('.proj-btn') && !e.target.closest('.me-btn') && !e.target.closest('.help-btn')) $$('.pop').forEach(p => p.remove()); return; }
+  if (!el) { if (!e.target.closest('.pop') && !e.target.closest('.proj-btn') && !e.target.closest('.picker') && !e.target.closest('.me-btn') && !e.target.closest('.help-btn')) $$('.pop').forEach(p => p.remove()); return; }
   if (el.tagName === 'SELECT') return;
   if (el.tagName === 'A') e.preventDefault();
   if (el.dataset.act === 'edit-project' && e.target.closest('select, .hchip')) return;
